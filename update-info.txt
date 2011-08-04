@@ -1,0 +1,1 @@
+* Fixed: Undefined constants PHP errors
