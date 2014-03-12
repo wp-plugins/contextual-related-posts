@@ -1,0 +1,707 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Contextual Related Posts\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-12 23:24-0000\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Ajay D'Souza <me@ajaydsouza.com>\n"
+"Language-Team: http://WPwebshop.com <info@wppg.me>\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: __;_e;_c;__ngettext\n"
+"X-Poedit-Basepath: ../\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Generator: Poedit 1.6.4\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: admin.inc.php:127
+msgid "Options saved successfully."
+msgstr "Opties succesvol opgeslagen."
+
+#: admin.inc.php:147
+msgid "Options set to Default."
+msgstr "Opties ingesteld op standaard."
+
+#: admin.inc.php:163
+msgid "Index recreated"
+msgstr "Index opnieuw gemaakt"
+
+#: admin.inc.php:175
+#, fuzzy
+msgid "General options"
+msgstr "Opties succesvol opgeslagen."
+
+#: admin.inc.php:178
+msgid "Cache output?"
+msgstr ""
+
+#: admin.inc.php:180
+msgid ""
+"Enabling this option will cache the related posts output when the post is "
+"visited the first time. The cache is cleaned when you save this page."
+msgstr ""
+
+#: admin.inc.php:181
+msgid "Clear cache"
+msgstr ""
+
+#: admin.inc.php:184 admin.inc.php:425
+msgid "Number of related posts to display: "
+msgstr "Aantal weer te geven gerelateerde berichten:"
+
+#: admin.inc.php:187
+msgid ""
+"Maximum number of posts that will be displayed. The actual number may be "
+"smaller if less related posts are found."
+msgstr ""
+
+#: admin.inc.php:190
+msgid "Related posts should be newer than:"
+msgstr ""
+
+#: admin.inc.php:192
+#, fuzzy
+msgid "days"
+msgstr "Van hoeveel dagen moet Dagelijks Populair weergaves bevatten ?"
+
+#: admin.inc.php:193
+msgid ""
+"This sets the cutoff period for which posts will be displayed. e.g. setting "
+"it to 365 will show related posts from the last year only."
+msgstr ""
+
+#: admin.inc.php:196
+msgid "Post types to include in results."
+msgstr ""
+
+#: admin.inc.php:205
+msgid ""
+"These post types will be displayed in the list. Includes custom post types."
+msgstr ""
+
+#: admin.inc.php:208
+msgid "Find related posts based on content as well as title"
+msgstr ""
+
+#: admin.inc.php:210
+#, fuzzy
+msgid ""
+"If unchecked, only posts titles are used. I recommend using a caching plugin "
+"or enabling \"Cache output\" above if you enable this."
+msgstr ""
+"Vind gerelateerde berichten gebaseerd op zowel content als titel. Indien "
+"niet geselecteerd worden er alleen berichttitels gebruikt. (Ik beveel het "
+"gebruik van een caching plugin aan wanneer je dit inschakelt)"
+
+#: admin.inc.php:213
+msgid "Limit content to be compared"
+msgstr ""
+
+#: admin.inc.php:215
+msgid ""
+"This sets the maximum words of the content that will be matched. 0 means no "
+"limit."
+msgstr ""
+
+#: admin.inc.php:218
+msgid "List of post or page IDs to exclude from the results: "
+msgstr ""
+
+#: admin.inc.php:220 admin.inc.php:315
+msgid ""
+"Comma separated list of post, page or custom post type IDs. e.g. 188,320,500"
+msgstr ""
+
+#: admin.inc.php:223
+msgid "Categories to exclude from the results: "
+msgstr ""
+
+#: admin.inc.php:239
+msgid ""
+"Comma separated list of category slugs. The field above has an autocomplete "
+"so simply start typing in the starting letters and it will prompt you with "
+"options"
+msgstr ""
+
+#: admin.inc.php:242
+#, fuzzy
+msgid "Add related posts to:"
+msgstr "Populaire Berichten"
+
+#: admin.inc.php:244
+#, fuzzy
+msgid "Posts"
+msgstr "Populaire Berichten"
+
+#: admin.inc.php:245
+msgid "Pages"
+msgstr ""
+
+#: admin.inc.php:246
+#, fuzzy
+msgid "Home page"
+msgstr "Resultaten per pagina:"
+
+#: admin.inc.php:247
+msgid "Feeds"
+msgstr ""
+
+#: admin.inc.php:248
+msgid "Category archives"
+msgstr ""
+
+#: admin.inc.php:249
+msgid "Tag archives"
+msgstr ""
+
+#: admin.inc.php:250
+#, fuzzy
+msgid "Other archives"
+msgstr "Andere plugins"
+
+#: admin.inc.php:251
+#, fuzzy
+msgid ""
+"If you choose to disable this, please add <code>&lt;?php if "
+"( function_exists( 'echo_ald_crp' ) ) echo_ald_crp(); ?&gt;</code> to your "
+"template file where you want it displayed"
+msgstr ""
+"Voeg gerelateerde berichten toe aan pagina's. <br />Wanneer je ervoor kiest "
+"om dit uit te zetten moet je de code <code>&lt;?php "
+"if(function_exists('echo_ald_crp')) echo_ald_crp(); ?&gt;</code> toevoegen "
+"aan je sjabloon bestand waar je het wilt laten weergeven"
+
+#: admin.inc.php:254
+msgid "Content filter priority:"
+msgstr ""
+
+#: admin.inc.php:257
+msgid ""
+"A higher number will cause the content above to be processed after other "
+"filters. Number below 10 is not recommended"
+msgstr ""
+
+#: admin.inc.php:260
+msgid "Add a link to the plugin page as a final item in the list"
+msgstr ""
+
+#: admin.inc.php:262
+msgid " <em>Optional</em>"
+msgstr ""
+
+#: admin.inc.php:263
+#, fuzzy
+msgid "Adds a nofollow link to Contextual Related Posts homepage."
+msgstr "Contextual Related Posts "
+
+#: admin.inc.php:270
+#, fuzzy
+msgid "Output options"
+msgstr "Opties succesvol opgeslagen."
+
+#: admin.inc.php:273
+msgid "Title of related posts: "
+msgstr "Titel van gerelateerde berichten:"
+
+#: admin.inc.php:276
+msgid ""
+"This is the main heading of the related posts. You can also display the "
+"current post title by using <code>%postname%</code>. e.g. <code>Related "
+"Posts to %postname%</code>"
+msgstr ""
+
+#: admin.inc.php:279
+msgid "When there are no posts, what should be shown?"
+msgstr "Wat moet er weergegeven worden wanneer er geen berichten zijn?"
+
+#: admin.inc.php:283
+msgid "Blank Output"
+msgstr "Lege Output"
+
+#: admin.inc.php:287
+#, fuzzy
+msgid "Display:"
+msgstr "Aantal populaire berichten om weer te geven:"
+
+#: admin.inc.php:291 admin.inc.php:428
+msgid "Show post excerpt in list?"
+msgstr "Laat bericht uittreksel zien in lijst?"
+
+#: admin.inc.php:294
+msgid "Length of excerpt (in words): "
+msgstr "Lengte van uittreksel (in woorden):"
+
+#: admin.inc.php:297
+#, fuzzy
+msgid "Show post author in list?"
+msgstr "Laat bericht samenvatting zien in lijst?"
+
+#: admin.inc.php:300
+#, fuzzy
+msgid "Show post date in list?"
+msgstr "Laat bericht samenvatting zien in lijst?"
+
+#: admin.inc.php:303
+msgid "Limit post title length (in characters)"
+msgstr ""
+
+#: admin.inc.php:306
+msgid "Open links in new window"
+msgstr ""
+
+#: admin.inc.php:309
+msgid "Add nofollow attribute to links in the list"
+msgstr ""
+
+#: admin.inc.php:312
+#, fuzzy
+msgid "Exclude display of related posts on these posts / pages"
+msgstr "Voeg gerelateerde berichten toe aan feed"
+
+#: admin.inc.php:318
+#, fuzzy
+msgid "Exclude display of related posts on these post types."
+msgstr "Voeg gerelateerde berichten toe aan feed"
+
+#: admin.inc.php:327
+msgid ""
+"The related posts will not display on any of the above selected post types"
+msgstr ""
+
+#: admin.inc.php:330
+msgid "Customize the output:"
+msgstr "Aanpassen van de output:"
+
+#: admin.inc.php:332
+msgid "HTML to display before the list of posts: "
+msgstr "Weer te geven HTML voor de berichtenlijst:"
+
+#: admin.inc.php:335
+msgid "HTML to display before each list item: "
+msgstr "Weer te geven HTML voor elk item in de lijst:"
+
+#: admin.inc.php:338
+msgid "HTML to display after each list item: "
+msgstr "Weer te geven HTML na elk item in de lijst:"
+
+#: admin.inc.php:341
+msgid "HTML to display after the list of posts: "
+msgstr "Weer te geven HTML na de berichtenlijst:"
+
+#: admin.inc.php:344
+msgid "Post thumbnail options:"
+msgstr "Berichtopties miniatuurafbeelding:"
+
+#: admin.inc.php:346 admin.inc.php:431
+#, fuzzy
+msgid "Location of post thumbnail:"
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: admin.inc.php:350 admin.inc.php:435
+#, fuzzy
+msgid "Display thumbnails inline with posts, before title"
+msgstr "Toon miniatuurafbeeldingen inline met berichten"
+
+#: admin.inc.php:354 admin.inc.php:439
+#, fuzzy
+msgid "Display thumbnails inline with posts, after title"
+msgstr "Toon miniatuurafbeeldingen inline met berichten"
+
+#: admin.inc.php:358 admin.inc.php:443
+msgid "Display only thumbnails, no text"
+msgstr "Alleen miniatuurafbeeldingen weergeven, geen tekst"
+
+#: admin.inc.php:362 admin.inc.php:447
+msgid "Do not display thumbnails, only text."
+msgstr "Geen miniatuurafbeeldingen weergeven, alleen tekst."
+
+#: admin.inc.php:366 admin.inc.php:451
+#, fuzzy
+msgid "Maximum width of the thumbnail: "
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: admin.inc.php:369 admin.inc.php:454
+#, fuzzy
+msgid "Maximum height of the thumbnail: "
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: admin.inc.php:372
+msgid "Style attributes / Width and Height HTML attributes:"
+msgstr ""
+
+#: admin.inc.php:376
+msgid ""
+"Style attributes are used for width and height. <code>style=\"max-width:"
+msgstr ""
+
+#: admin.inc.php:380
+msgid ""
+"HTML width and height attributes are used for width and height. <code>width="
+"\""
+msgstr ""
+
+#: admin.inc.php:384
+msgid "Use timthumb to generate thumbnails? "
+msgstr ""
+
+#: admin.inc.php:386
+msgid ""
+"If checked, <a href=\"http://www.binarymoon.co.uk/projects/timthumb/"
+"\">timthumb</a> will be used to generate thumbnails"
+msgstr ""
+
+#: admin.inc.php:389
+msgid "Quality of thumbnails generated by timthumb"
+msgstr ""
+
+#: admin.inc.php:392
+msgid ""
+"Enter values between 0 and 100 only. 100 is highest quality, however, it is "
+"also the highest file size. Suggested maximum value is 95. CRP default is 75."
+msgstr ""
+
+#: admin.inc.php:395
+#, fuzzy
+msgid "Post thumbnail meta field name: "
+msgstr "Berichtopties miniatuurafbeelding:"
+
+#: admin.inc.php:397
+msgid ""
+"The value of this field should contain the image source and is set in the "
+"<em>Add New Post</em> screen"
+msgstr ""
+
+#: admin.inc.php:400
+#, fuzzy
+msgid ""
+"If the postmeta is not set, then should the plugin extract the first image "
+"from the post?"
+msgstr ""
+"Als de postmeta niet is ingesteld moet de plugin de eerste afbeelding van "
+"het bericht uitpakken. Dit kan het laden van uw bericht vertragen, indien "
+"het eerste beeld in de gerelateerde berichten groot is qua bestandsgrootte"
+
+#: admin.inc.php:402
+#, fuzzy
+msgid ""
+"This can slow down the loading of your page if the first image in the "
+"related posts is large in file-size"
+msgstr ""
+"Als de postmeta niet is ingesteld moet de plugin de eerste afbeelding van "
+"het bericht uitpakken. Dit kan het laden van uw bericht vertragen, indien "
+"het eerste beeld in de gerelateerde berichten groot is qua bestandsgrootte"
+
+#: admin.inc.php:405
+#, fuzzy
+msgid "Use default thumbnail? "
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: admin.inc.php:407
+msgid ""
+"If checked, when no thumbnail is found, show a default one from the URL "
+"below. If not checked and no thumbnail is found, no image will be shown."
+msgstr ""
+
+#: admin.inc.php:410
+#, fuzzy
+msgid "Default thumbnail: "
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: admin.inc.php:413
+#, fuzzy
+msgid ""
+"The plugin will first check if the post contains a thumbnail. If it doesn't "
+"then it will check the meta field. If this is not available, then it will "
+"show the default image as specified above"
+msgstr ""
+"De plugin zal eerst controleren of het bericht een miniatuurafbeelding "
+"bevat, zoniet dan zal de plugin het metaveld controleren. Wanneer het geen "
+"miniatuurafbeelding bevat wordt de standaard afbeelding getoond zoals "
+"hieronder aangegeven:"
+
+#: admin.inc.php:420
+#, fuzzy
+msgid "Feed options"
+msgstr "Opties succesvol opgeslagen."
+
+#: admin.inc.php:423
+msgid ""
+"Below options override the related posts settings for your blog feed. These "
+"only apply if you have selected to add related posts to Feeds in the General "
+"Options tab."
+msgstr ""
+
+#: admin.inc.php:461
+msgid "Custom styles"
+msgstr ""
+
+#: admin.inc.php:464
+msgid "Use default style included in the plugin?"
+msgstr ""
+
+#: admin.inc.php:467
+msgid ""
+"Contextual Related Posts includes a default style that makes your popular "
+"posts list to look pretty. Check the box above if you want to use this."
+msgstr ""
+
+#: admin.inc.php:468
+msgid ""
+"Enabling this option will automatically turn on the thumbnails and set their "
+"width and height to 150px. Disabling this will not turn off thumbnails or "
+"change their dimensions."
+msgstr ""
+
+#: admin.inc.php:471
+msgid "Custom CSS to add to header:"
+msgstr ""
+
+#: admin.inc.php:475
+msgid ""
+"Do not include <code>style</code> tags. Check out the <a href=\"http://"
+"wordpress.org/extend/plugins/contextual-related-posts/faq/\" target=\"_blank"
+"\">FAQ</a> for available CSS classes to style."
+msgstr ""
+
+#: admin.inc.php:482
+#, fuzzy
+msgid "Save Options"
+msgstr "Opties succesvol opgeslagen."
+
+#: admin.inc.php:483
+#, fuzzy
+msgid "Default Options"
+msgstr "Opties ingesteld op Standaard."
+
+#: admin.inc.php:483
+msgid "Do you want to set options to Default?"
+msgstr "Wil je opties terug naar standaard instellen?"
+
+#: admin.inc.php:484
+msgid "Recreate Index"
+msgstr ""
+
+#: admin.inc.php:484
+msgid "Are you sure you want to recreate the index?"
+msgstr "Weet je zeker dat je de index opnieuw wilt creeëren?"
+
+#: admin.inc.php:492
+msgid "Support the development"
+msgstr "Ondersteun de ontwikkeling"
+
+#: admin.inc.php:501
+msgid "Enter amount in USD: "
+msgstr "Voer het bedrag in USD in:"
+
+#: admin.inc.php:505
+msgid "Send your donation to the author of"
+msgstr "Stuur je donatie aan de auteur van"
+
+#: admin.inc.php:512
+msgid "Follow me"
+msgstr ""
+
+#: admin.inc.php:522
+#, fuzzy
+msgid "Quick links"
+msgstr "Quick links"
+
+#: admin.inc.php:526
+#, fuzzy
+msgid "Contextual Related Posts plugin page"
+msgstr "Contextual Related Posts "
+
+#: admin.inc.php:527
+msgid "Other plugins"
+msgstr "Andere plugins"
+
+#: admin.inc.php:528
+msgid "Ajay's blog"
+msgstr "Ajay's blog"
+
+#: admin.inc.php:529
+msgid "FAQ"
+msgstr ""
+
+#: admin.inc.php:530 contextual-related-posts.php:927
+msgid "Support"
+msgstr "Ondersteuning"
+
+#: admin.inc.php:531
+msgid "Reviews"
+msgstr ""
+
+#: admin.inc.php:554
+msgid "Contextual Related Posts"
+msgstr "Contextual Related Posts"
+
+#: admin.inc.php:554 contextual-related-posts.php:372
+msgid "Related Posts"
+msgstr "Gerelateerde Berichten"
+
+#: admin.inc.php:658
+#, fuzzy
+msgid "plugin settings page"
+msgstr "Instellingen"
+
+#: admin.inc.php:692
+msgid ""
+"An error occurred clearing the cache. Please contact your site administrator."
+"\\n\\nError message:\\n"
+msgstr ""
+
+#: admin.inc.php:697
+msgid " cached row(s) cleared"
+msgstr ""
+
+#: contextual-related-posts.php:128
+msgid " by "
+msgstr ""
+
+#: contextual-related-posts.php:143
+msgid "Powered by"
+msgstr "Powered by"
+
+#: contextual-related-posts.php:371
+#, fuzzy
+msgid "Display Related Posts"
+msgstr "Aantal populaire berichten om weer te geven:"
+
+#: contextual-related-posts.php:386
+#, fuzzy
+msgid "Title"
+msgstr "Titel van populaire berichten:"
+
+#: contextual-related-posts.php:391
+#, fuzzy
+msgid "No. of posts"
+msgstr "Populaire Berichten"
+
+#: contextual-related-posts.php:396
+#, fuzzy
+msgid " Show excerpt?"
+msgstr "Laat bericht samenvatting zien in lijst?"
+
+#: contextual-related-posts.php:401
+#, fuzzy
+msgid " Show author?"
+msgstr "Zend je donatie naar de auteur van "
+
+#: contextual-related-posts.php:406
+#, fuzzy
+msgid " Show date?"
+msgstr "Laat bericht samenvatting zien in lijst?"
+
+#: contextual-related-posts.php:410
+#, fuzzy
+msgid "Thumbnail options"
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: contextual-related-posts.php:412
+#, fuzzy
+msgid "Thumbnails inline, before title"
+msgstr "Toon miniatuurafbeeldingen inline met berichten"
+
+#: contextual-related-posts.php:413
+#, fuzzy
+msgid "Thumbnails inline, after title"
+msgstr "Toon miniatuurafbeeldingen inline met berichten"
+
+#: contextual-related-posts.php:414
+#, fuzzy
+msgid "Only thumbnails, no text"
+msgstr "Geef alleen miniatuurafbeeldingen weer, geen text"
+
+#: contextual-related-posts.php:415
+#, fuzzy
+msgid "No thumbnails, only text."
+msgstr "Geef geen miniatuurafbeeldingen weer, alleen text"
+
+#: contextual-related-posts.php:420
+#, fuzzy
+msgid "Thumbnail height"
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: contextual-related-posts.php:425
+#, fuzzy
+msgid "Thumbnail width"
+msgstr "Bericht miniatuurafbeelding opties:"
+
+#: contextual-related-posts.php:548
+msgid "<h3>Related Posts:</h3>"
+msgstr "<h3>Gerelateerde Berichten:</h3>"
+
+#: contextual-related-posts.php:549
+#, fuzzy
+msgid "No related posts found"
+msgstr "Populaire Berichten"
+
+#: contextual-related-posts.php:907
+msgid "Settings"
+msgstr "Instellingen"
+
+#: contextual-related-posts.php:928
+msgid "Donate"
+msgstr "Doneren"
+
+#~ msgid "Recent developments"
+#~ msgstr "Recente ontwikkelingen"
+
+#, fuzzy
+#~ msgid " Posted by "
+#~ msgstr "Powered by"
+
+#~ msgid "Follow @ajaydsouza on Twitter"
+#~ msgstr "Volg @ajaydsouza via Twitter"
+
+#~ msgid "Display \"No Related Posts\""
+#~ msgstr "Weergave \"Geen Gerelateerde Berichten\""
+
+#~ msgid "Exclude Categories: "
+#~ msgstr "Uitsluiten Categorieën"
+
+#~ msgid "plugin page"
+#~ msgstr "plugin pagina"
+
+#~ msgid "Exclude Pages in Related Posts"
+#~ msgstr "Uitsluiten Pagina's in Gerelateerde Berichten"
+
+#~ msgid ""
+#~ "Add related posts to the post content on single posts. <br />If you "
+#~ "choose to disable this, please add <code>&lt;?php "
+#~ "if(function_exists('echo_ald_crp')) echo_ald_crp(); ?&gt;</code> to your "
+#~ "template file where you want it displayed"
+#~ msgstr ""
+#~ "Voeg gerelateerde berichten toe aan de bericht inhoud op enkele pagina's. "
+#~ "<br />Wanneer je ervoor kiest om dit uit te zetten moet je de code "
+#~ "<code>&lt;?php if(function_exists('echo_ald_crp')) echo_ald_crp(); ?&gt;</"
+#~ "code> toevoegen aan je sjabloon bestand waar je het wilt laten weergeven"
+
+#~ msgid ""
+#~ "Append link to this plugin as item. Optional, but would be nice to give "
+#~ "me some link love"
+#~ msgstr ""
+#~ "Voeg een link naar deze plugin als item toe. Optioneel, maar het zou leuk "
+#~ "zijn als je me wat linkgenot geeft"
+
+#~ msgid ""
+#~ "Post thumbnail meta field (the meta should point contain the image "
+#~ "source): "
+#~ msgstr ""
+#~ "Bericht miniatuurafbeelding metaveld (de meta moet de afbeeldingsbron "
+#~ "bevatten):"
+
+#~ msgid "Thumbnail dimensions:"
+#~ msgstr "Afmetingen miniatuurafbeelding:"
+
+#~ msgid "Max width: "
+#~ msgstr "Maximale breedte:"
+
+#~ msgid "Max height: "
+#~ msgstr "Maximale hoogte:"
+
+#~ msgid "Support forum"
+#~ msgstr "Ondersteuningsforum"
