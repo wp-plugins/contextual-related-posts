@@ -4,7 +4,7 @@ Contributors: Ajay
 Donate link: http://ajaydsouza.com/donate/
 Stable tag: trunk
 Requires at least: 3.0
-Tested up to: 3.9
+Tested up to: 4.0
 License: GPLv2 or later
 
 Display related posts on your WordPress blog and feed. Supports thumbnails, shortcodes, widgets and custom post types!
@@ -32,7 +32,7 @@ The plugin also comes with it's very own inbuilt stylesheet that let's your rela
 * **Thumbnail support**:
 	* Support for WordPress post thumbnails
 	* Auto-extract the first image in your post to be displayed as a thumbnail
-	* Manually enter the URL of the thumbnail via <a href="http://codex.wordpress.org/Custom_Fields">WordPress meta fields</a>
+	* Manually enter the URL of the thumbnail via <a href="http://codex.wordpress.org/Custom_Fields">WordPress meta fields</a>. Specify this using the meta box in your Edit screens.
 	* Use timthumb to resize images or use your own filter function to resize post images
 * **Styles**: The output is wrapped in CSS classes which allows you to easily style the list. You can enter your custom CSS styles from within WordPress Admin area or use the style included.
 * **Customisable output**:
@@ -52,11 +52,19 @@ So, if you've got some cool feature that you'd like to implement into the plugin
 
 == Upgrade Notice ==
 
-= 1.9.0.1 =
-* Fixed: Add to feeds was broken in v1.9
+= 1.9.1 =
+* New Meta box on the Edit screens; Modifed match title algorithm; code cleanup and bug fixes;
+Check the Changelog for a full list of changes.
 
 
 == Changelog ==
+
+= 1.9.1 =
+* New: Meta box on the Edit Posts, Pages and custom post type pages to easily add the location of the URL of the thumbnail image
+* Modified: Refined match title algorithm. Previously this would match the post title with both the title and content
+* Modified: Widget initialisation
+* Modified: Massive code cleanup and more documentation in the WordPress settings page
+* New: Added w.org and github.com to list of allowed sites for timthumb
 
 = 1.9.0.1 =
 * Fixed: Add to feeds was broken in v1.9
@@ -286,7 +294,7 @@ So, if you've got some cool feature that you'd like to implement into the plugin
 3. CRP options in WP-Admin - Feed options
 4. CRP options in WP-Admin - Custom styles
 5. CRP Widget
-
+6. Contextual Related Post metabox in the Edit Posts screen
 
 == Frequently Asked Questions ==
 
