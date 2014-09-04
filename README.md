@@ -1,6 +1,6 @@
 ﻿# Contextual Related Posts
 
-__Requires:__ 3.0
+__Requires:__ 3.5
 
 __Tested up to:__ 4.0
 
@@ -31,23 +31,31 @@ The plugin also comes with it's very own inbuilt stylesheet that let's your rela
 * **Exclusions**: Exclude posts from categories from being displayed in the list. Or you can exclude posts or pages by ID
 * **Custom post types**: The related posts list lets you include posts, pages, attachments or any other custom post type!
 * **Thumbnail support**:
-	* Support for WordPress post thumbnails
+	* Support for WordPress post thumbnails. CRP will create a custom image size (`crp_thumbnail`) with the dimensions specified in the Settings page
 	* Auto-extract the first image in your post to be displayed as a thumbnail
 	* Manually enter the URL of the thumbnail via <a href="http://codex.wordpress.org/Custom_Fields">WordPress meta fields</a>. Specify this using the meta box in your Edit screens.
-	* Use timthumb to resize images or use your own filter function to resize post images
+	* Optionally, use timthumb to resize images or use your own filter function to resize post images
 * **Styles**: The output is wrapped in CSS classes which allows you to easily style the list. You can enter your custom CSS styles from within WordPress Admin area or use the style included.
 * **Customisable output**:
 	* Display excerpts in post. You can select the length of the excerpt in words
 	* Customise which HTML tags to use for displaying the output in case you don't prefer the default `list` format
+* **Extensible code**: Several actions and filters to modify the output, add more options, etc.
 
 ### Donations
 
 I spend a significant amount of my free time maintaing, updating and more importantly supporting this plugin. Those who have sought support in the support forums know that I have done by best to answer your question and solve your problem.
 If you have been using this plugin and find this useful, do consider making a donation. This helps me pay for my hosting and domains.
 
+### Translations
+Contextual Related Posts is now on Transifex ready for translation courtesy the <a href="http://wp-translations.org/translators-wp-translations/">WP Translations</a>. WP-Translations is the place where you will find a number of WordPress amazing Plugins and Themes to make them available in your home language. In exchange you will receive credit for your work and will certainly make part of the WP community history in your country.
+
+If you're a translator, do consider joining the Wp Translations team.
+
+Visit <a href="https://www.transifex.com/projects/p/contextual-related-posts/">Contextual Related Posts on Transifex</a>.
+
 
 ## Screenshots
-![General Options](https://raw.github.com/ajaydsouza/contextual-related-posts/master/screenshot-1.png)
+![General Options](https://raw.github.com/ajaydsouza/contextual-related-posts/master/assets/screenshot-1.png)
 
 _Contextual Related Posts - General Options_
 

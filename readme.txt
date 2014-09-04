@@ -3,7 +3,7 @@ Tags: related posts, related, similar posts, posts, post, feed, feeds, rss, widg
 Contributors: Ajay
 Donate link: http://ajaydsouza.com/donate/
 Stable tag: trunk
-Requires at least: 3.0
+Requires at least: 3.5
 Tested up to: 4.0
 License: GPLv2 or later
 
@@ -11,7 +11,7 @@ Display related posts on your WordPress blog and feed. Supports thumbnails, shor
 
 == Description ==
 
-<a href="http://ajaydsouza.com/wordpress/plugins/contextual-related-posts/">Contextual Related Posts</a> is a powerful plugin for WordPress that allows you to display a list of related posts on your website and in your feed. 
+<a href="http://ajaydsouza.com/wordpress/plugins/contextual-related-posts/">Contextual Related Posts</a> is a powerful plugin for WordPress that allows you to display a list of related posts on your website and in your feed.
 
 The list is based on the content of the title and/or content of the posts which makes them more relevant and more likely to be of interest to your readers. This allows you to retain visitors, reduce bounce rates and refresh old entries.
 
@@ -30,18 +30,19 @@ The plugin also comes with it's very own inbuilt stylesheet that let's your rela
 * **Exclusions**: Exclude posts from categories from being displayed in the list. Or you can exclude posts or pages by ID
 * **Custom post types**: The related posts list lets you include posts, pages, attachments or any other custom post type!
 * **Thumbnail support**:
-	* Support for WordPress post thumbnails
+	* Support for WordPress post thumbnails. CRP will create a custom image size (`crp_thumbnail`) with the dimensions specified in the Settings page
 	* Auto-extract the first image in your post to be displayed as a thumbnail
 	* Manually enter the URL of the thumbnail via <a href="http://codex.wordpress.org/Custom_Fields">WordPress meta fields</a>. Specify this using the meta box in your Edit screens.
-	* Use timthumb to resize images or use your own filter function to resize post images
+	* Optionally, use timthumb to resize images or use your own filter function to resize post images
 * **Styles**: The output is wrapped in CSS classes which allows you to easily style the list. You can enter your custom CSS styles from within WordPress Admin area or use the style included.
 * **Customisable output**:
 	* Display excerpts in post. You can select the length of the excerpt in words
 	* Customise which HTML tags to use for displaying the output in case you don't prefer the default `list` format
+* **Extensible code**: Several actions and filters to modify the output, add more options, etc.
 
 = Donations =
 
-I spend a significant amount of my free time maintaing, updating and more importantly supporting this plugin. Those who have sought support in the support forums know that I have done by best to answer your question and solve your problem.
+I spend a significant amount of my free time maintaing, updating and more importantly supporting this plugin. Those who have sought support in the support forums know that I have done my best to answer your question and solve your problem.
 If you have been using this plugin and find this useful, do consider making a donation. This helps me pay for my hosting and domains.
 
 = Contribute =
@@ -49,15 +50,33 @@ If you have been using this plugin and find this useful, do consider making a do
 Contextual Related Posts is also available on Github at https://github.com/ajaydsouza/contextual-related-posts
 So, if you've got some cool feature that you'd like to implement into the plugin or a bug you've been able to fix, consider forking the project and sending me a pull request.
 
+= Translations =
+Contextual Related Posts is now on Transifex ready for translation courtesy the <a href="http://wp-translations.org/translators-wp-translations/">WP Translations</a>. WP-Translations is the place where you will find a number of WordPress amazing Plugins and Themes to make them available in your home language. In exchange you will receive credit for your work and will certainly make part of the WP community history in your country.
+
+If you're a translator, do consider joining the Wp Translations team.
+
+Visit <a href="https://www.transifex.com/projects/p/contextual-related-posts/">Contextual Related Posts on Transifex</a>.
 
 == Upgrade Notice ==
 
-= 1.9.1 =
-* New Meta box on the Edit screens; Modifed match title algorithm; code cleanup and bug fixes;
+= 2.0.0 =
+* New multisite support; Thumbnails no longer need timthumb; HTTPS support for thumbnails; filters for mySQL query;
 Check the Changelog for a full list of changes.
 
 
 == Changelog ==
+
+= 2.0.0 =
+* New: Multi-site support. Now you can Network Activate the plugin and all users will see related posts!
+* New: Thumbnails are registered as an image size in WordPress. This means WordPress will create a copy of the image with the specified dimensions when a new image is uploaded. For your existing images, I recommend using <a href="https://wordpress.org/plugins/force-regenerate-thumbnails/">Force Regenerate Thumbnails</a>
+* New: Completely filterable mySQL query to fetch the posts. You can write your own functions to filter the fields, orderby, groupby, join and limits clauses
+* Modified: Lookup priority for thumbnails. The thumbnail URL set in the Contextual Related Posts meta box is given first priority
+* Modified: Removed `border=0` attribute from `img` tag for HTML5 validation support
+* Modified: Default option for timthumb is disabled
+* Modified: Default option for post types to include is post and page
+* Modified: `get_crp_posts` has been deprecated. See `get_crp_posts_id` instead
+* Modified: Turning on the Default style will switch on thumbnails, correctly resize them and will also hide authors, excerpts and the post date
+* Fixed: Post image will now be loaded over https if the visitor visits your site on https
 
 = 1.9.1 =
 * New: Meta box on the Edit Posts, Pages and custom post type pages to easily add the location of the URL of the thumbnail image
@@ -99,7 +118,7 @@ Check the Changelog for a full list of changes.
 * Fixed: PHP error when fetching thumbnail for gallery posts
 
 = 1.8.9 =
-* New: Option to choose between using CSS styles or HTML attributes for thumbnail width and height. *HTML width and height attributes are default* 
+* New: Option to choose between using CSS styles or HTML attributes for thumbnail width and height. *HTML width and height attributes are default*
 * New: Filters `crp_title` and `crp_heading_title` can be used to customise the Title of the posts and Heading Title of posts list respectively. Check out the FAQ for further information
 * New: Option to add the author to the list of posts
 * New: Options in the widget to show author and date
@@ -112,7 +131,7 @@ Check the Changelog for a full list of changes.
 
 = 1.8.8 =
 * New: Clear cache button
-* New: Option to add the date before the post title 
+* New: Option to add the date before the post title
 
 = 1.8.7 =
 * Important security update: Potential XSS vulnerability fixed. Thanks to Charlie Eriksen via Secunia SVCRP for reporting this
@@ -242,7 +261,7 @@ Check the Changelog for a full list of changes.
 * Fixed bug that didn't blank out posts even when option was selected
 
 = 1.3 =
-* Better optimization in WP-Admin area. 
+* Better optimization in WP-Admin area.
 * Fixed compatibility problems with Simple Tags plugin
 * Fixed large number of queries being generated
 
@@ -281,7 +300,7 @@ Check the Changelog for a full list of changes.
 
 2. Extract the contents of contextual-related-posts.zip to wp-content/plugins/ folder. You should get a folder called contextual-related-posts.
 
-3. Activate the Plugin in WP-Admin. 
+3. Activate the Plugin in WP-Admin.
 
 4. Goto **Settings &raquo; Related Posts** to configure
 
@@ -349,7 +368,7 @@ Usage: `<?php if(function_exists('echo_ald_crp')) echo_ald_crp(); ?>` to your te
 
 **get_crp_posts_id()**
 
-Takes a post ID and returns the related post IDs as an object. 
+Takes a post ID and returns the related post IDs as an object.
 
 Usage: `<?php if(function_exists('get_crp_posts_id')) get_crp_posts_id( array( 'postid' => $postid, 'limit' => $limit ) ); ?>`
 
@@ -372,7 +391,7 @@ You can insert the related posts anywhere in your post using the `[crp]` shortco
 
 `
 <h3>Similar posts</h3>
-[crp limit="2" heading="0"] 
+[crp limit="2" heading="0"]
 `
 *cache* : Cache the output or not? By default the output will be cached for the post you add the shortcode in. You can override this by specifying `cache=0`
 
