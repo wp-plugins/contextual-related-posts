@@ -1,10 +1,10 @@
-﻿=== Contextual Related Posts ===
+=== Contextual Related Posts ===
 Tags: related posts, related, similar posts, posts, post, feed, feeds, rss, widget, thumbnail
 Contributors: Ajay
 Donate link: http://ajaydsouza.com/donate/
 Stable tag: trunk
 Requires at least: 3.5
-Tested up to: 4.0
+Tested up to: 4.1
 License: GPLv2 or later
 
 Display related posts on your WordPress blog and feed. Supports thumbnails, shortcodes, widgets and custom post types!
