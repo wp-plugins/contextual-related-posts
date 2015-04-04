@@ -8,7 +8,7 @@
  * @author    Ajay D'Souza <me@ajaydsouza.com>
  * @license   GPL-2.0+
  * @link      http://ajaydsouza.com
- * @copyright 2009-2014 Ajay D'Souza
+ * @copyright 2009-2015 Ajay D'Souza
  */
 
 /**** If this file is called directly, abort. ****/
@@ -25,7 +25,7 @@ if ( ! defined( 'WPINC' ) ) {
  */
 function crp_options() {
 
-	global $wpdb;
+	global $wpdb, $crp_url;
 
 	$crp_settings = crp_read_options();
 
@@ -80,17 +80,18 @@ function crp_options() {
 		$crp_settings['exclude_on_post_ids'] = $_POST['exclude_on_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ",", $_POST['exclude_on_post_ids'] ) ) );
 		$crp_settings['exclude_post_ids'] = $_POST['exclude_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ",", $_POST['exclude_post_ids'] ) ) );
 
+		/**** Thumbnail options ****/
 		$crp_settings['post_thumb_op'] = wp_kses_post( $_POST['post_thumb_op'] );
+		$crp_settings['thumb_size'] = $_POST['thumb_size'];
 		$crp_settings['thumb_height'] = intval( $_POST['thumb_height'] );
 		$crp_settings['thumb_width'] = intval( $_POST['thumb_width'] );
 		$crp_settings['thumb_crop'] = ( isset( $_POST['thumb_crop'] ) ? true : false );
 		$crp_settings['thumb_html'] = $_POST['thumb_html'];
+
 		$crp_settings['thumb_meta'] = ( '' == $_POST['thumb_meta'] ? 'post-image' : wp_kses_post( $_POST['thumb_meta'] ) );
 		$crp_settings['scan_images'] = ( isset( $_POST['scan_images'] ) ? true : false );
-		$crp_settings['thumb_default'] = wp_kses_post( $_POST['thumb_default'] );
+		$crp_settings['thumb_default'] = ( ( '' == $_POST['thumb_default'] ) || ( "/default.png" == $_POST['thumb_default'] ) ) ? $crp_url . '/default.png' : $_POST['thumb_default'];
 		$crp_settings['thumb_default_show'] = ( isset( $_POST['thumb_default_show'] ) ? true : false );
-		$crp_settings['thumb_timthumb'] = ( isset( $_POST['thumb_timthumb'] ) ? true : false );
-		$crp_settings['thumb_timthumb_q'] = intval( $_POST['thumb_timthumb_q'] );
 
 		/**** Feed options ****/
 		$crp_settings['limit_feed'] = intval( $_POST['limit_feed'] );
@@ -155,8 +156,11 @@ function crp_options() {
 		parse_str( $crp_settings['exclude_on_post_types'], $exclude_on_post_types );
 		$posts_types_excl = array_intersect( $wp_post_types, $exclude_on_post_types );
 
-		delete_post_meta_by_key( 'crp_related_posts' ); // Delete the cache
-		delete_post_meta_by_key( 'crp_related_posts_widget' ); // Delete the cache
+		// Delete the cache
+		delete_post_meta_by_key( 'crp_related_posts' );
+		delete_post_meta_by_key( 'crp_related_posts_widget' );
+		delete_post_meta_by_key( 'crp_related_posts_feed' );
+		delete_post_meta_by_key( 'crp_related_posts_widget_feed' );
 
 		$str = '<div id="message" class="updated fade"><p>'. __( 'Options saved successfully.', CRP_LOCAL_NAME ) .'</p></div>';
 		echo $str;
@@ -378,7 +382,7 @@ function crp_admin_notice() {
 function crp_ajax_clearcache() {
 	global $wpdb;
 
-	$rows = $wpdb->query( "
+	$rows1 = $wpdb->query( "
 		DELETE FROM " . $wpdb->postmeta . "
 		WHERE meta_key='crp_related_posts'
 	" );
@@ -388,8 +392,18 @@ function crp_ajax_clearcache() {
 		WHERE meta_key='crp_related_posts_widget'
 	" );
 
+	$rows3 = $wpdb->query( "
+		DELETE FROM " . $wpdb->postmeta . "
+		WHERE meta_key='crp_related_posts_feed'
+	" );
+
+	$rows4 = $wpdb->query( "
+		DELETE FROM " . $wpdb->postmeta . "
+		WHERE meta_key='crp_related_posts_widget_feed'
+	" );
+
 	/**** Did an error occur? ****/
-	if ( ( $rows === false ) && ( $rows2 === false ) ) {
+	if ( ( $rows1 === false ) && ( $rows2 === false ) && ( $rows3 === false ) && ( $rows4 === false ) ) {
 		exit( json_encode( array(
 			'success' => 0,
 			'message' => __('An error occurred clearing the cache. Please contact your site administrator.\n\nError message:\n', CRP_LOCAL_NAME) . $wpdb->print_error(),
@@ -397,7 +411,7 @@ function crp_ajax_clearcache() {
 	} else {	// No error, return the number of
 		exit( json_encode( array(
 			'success' => 1,
-			'message' => ($rows+$rows2) . __(' cached row(s) cleared', CRP_LOCAL_NAME),
+			'message' => ($rows1+$rows2+$rows3+$rows4) . __(' cached row(s) cleared', CRP_LOCAL_NAME),
 		) ) );
 	}
 }
@@ -414,6 +428,13 @@ add_action( 'wp_ajax_crp_clear_cache', 'crp_ajax_clearcache' );
  */
 function crp_add_meta_box( $post_type, $post ) {
 
+	$args = array(
+	   'public'   => true,
+	);
+	$post_types = get_post_types( $args );
+
+	if ( in_array( $post_type, $post_types ) ) {
+
     	add_meta_box(
     		'crp_metabox',
     		__( 'Contextual Related Posts', CRP_LOCAL_NAME ),
@@ -422,7 +443,7 @@ function crp_add_meta_box( $post_type, $post ) {
     		'advanced',
     		'default'
     	);
-
+	}
 }
 add_action( 'add_meta_boxes', 'crp_add_meta_box' , 10, 2 );
 

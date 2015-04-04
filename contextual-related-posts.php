@@ -9,13 +9,13 @@
  * @author    Ajay D'Souza <me@ajaydsouza.com>
  * @license   GPL-2.0+
  * @link      http://ajaydsouza.com
- * @copyright 2009-2014 Ajay D'Souza
+ * @copyright 2009-2015 Ajay D'Souza
  *
  * @wordpress-plugin
  * Plugin Name:	Contextual Related Posts
  * Plugin URI:	http://ajaydsouza.com/wordpress/plugins/contextual-related-posts/
  * Description:	Display a set of related posts on your website or in your feed. Increase reader retention and reduce bounce rates
- * Version: 	2.0.1
+ * Version: 	2.1.0
  * Author: 		Ajay D'Souza
  * Author URI: 	http://ajaydsouza.com
  * Text Domain:	crp
@@ -103,7 +103,14 @@ function ald_crp( $args = array() ) {
 
 	//Support caching to speed up retrieval
 	if ( ! empty( $cache ) ) {
-		$output = ( $is_widget ) ? get_post_meta( $post->ID, 'crp_related_posts_widget', true ) : get_post_meta( $post->ID, 'crp_related_posts', true );
+		$meta_key = 'crp_related_posts';
+		if ( $is_widget ) {
+			$meta_key .= '_widget';
+		}
+		if ( is_feed() ) {
+			$meta_key .= '_feed';
+		}
+		$output = get_post_meta( $post->ID, $meta_key, true );
 		if ( $output ) {
 			return $output;
 		}
@@ -217,11 +224,8 @@ function ald_crp( $args = array() ) {
 						'thumb_html' => $thumb_html,
 						'thumb_default' => $thumb_default,
 						'thumb_default_show' => $thumb_default_show,
-						'thumb_timthumb' => $thumb_timthumb,
-						'thumb_timthumb_q' => $thumb_timthumb_q,
 						'scan_images' => $scan_images,
 						'class' => 'crp_thumb',
-						'filter' => 'crp_postimage',
 					) );
 					$output .= '</a>';
 				}
@@ -243,7 +247,7 @@ function ald_crp( $args = array() ) {
 					 */
 					$author_name = apply_filters( 'crp_author_name', $author_name, $author_info );
 
-					$crp_author .= '<span class="crp_author"> ' . __( ' by ', CRP_LOCAL_NAME ).'<a href="' . $author_link . '">' . $author_name . '</a></span> ';
+					$crp_author = '<span class="crp_author"> ' . __( ' by ', CRP_LOCAL_NAME ).'<a href="' . $author_link . '">' . $author_name . '</a></span> ';
 
 					/**
 					 * Filter the text with the author details.
@@ -323,11 +327,7 @@ function ald_crp( $args = array() ) {
 
 	//Support caching to speed up retrieval
 	if ( ! empty( $cache ) ) {
-		if ( $is_widget ) {
-			update_post_meta( $post->ID, 'crp_related_posts_widget', $output, '' );
-		} else {
-			update_post_meta( $post->ID, 'crp_related_posts', $output, '' );
-		}
+		update_post_meta( $post->ID, $meta_key, $output, '' );
 	}
 
 	/**
@@ -374,6 +374,22 @@ function get_crp_posts_id( $args = array() ) {
 	// Declare each item in $args as its own variable i.e. $type, $before.
 	extract( $args, EXTR_SKIP );
 
+	// Fix the thumb size in case it is missing
+	$crp_thumb_size = crp_get_all_image_sizes( $thumb_size );
+
+	if ( isset( $crp_thumb_size['width'] ) ) {
+		$thumb_width = $crp_thumb_size['width'];
+		$thumb_height = $crp_thumb_size['height'];
+	}
+
+	if ( empty( $thumb_width ) ) {
+		$thumb_width = $crp_settings['thumb_width'];
+	}
+
+	if ( empty( $thumb_height ) ) {
+		$thumb_height = $crp_settings['thumb_height'];
+	}
+
 	$post = ( empty( $postid ) ) ? $post : get_post( $postid );
 
 	$limit = ( $strict_limit ) ? $limit : ( $limit * 3 );
@@ -394,9 +410,9 @@ function get_crp_posts_id( $args = array() ) {
 	$now = gmdate( "Y-m-d H:i:s", ( time() + ( $time_difference * 3600 ) ) );
 
 	// Limit the related posts by time
-	$daily_range = $daily_range - 1;
-	$from_date = strtotime( '-' . $daily_range . ' DAY' , strtotime( $now ) );
-	$from_date = date ( 'Y-m-d H:i:s' , $from_date );
+	$current_time = current_time( 'timestamp', 0 );
+	$from_date = $current_time - ( $daily_range * DAY_IN_SECONDS );
+	$from_date = gmdate( 'Y-m-d H:i:s' , $from_date );
 
 	// Create the SQL query to fetch the related posts from the database
 	if ( ( is_int( $post->ID ) ) && ( '' != $stuff ) ) {
@@ -404,10 +420,50 @@ function get_crp_posts_id( $args = array() ) {
 		// Fields to return
 		$fields = " $wpdb->posts.ID ";
 
+		// Create the base MATCH clause
+		$match = $wpdb->prepare( " AND MATCH (" . $match_fields . ") AGAINST ('%s') ", $stuff );	// FULLTEXT matching algorithm
+
+		/**
+		 * Filter the MATCH clause of the query.
+		 *
+		 * @since	2.1.0
+		 *
+		 * @param string   $match  		The MATCH section of the WHERE clause of the query
+		 * @param string   $stuff  		String to match fulltext with
+		 * @param int	   $post->ID	Post ID
+		 */
+		$match = apply_filters( 'crp_posts_match', $match, $stuff, $post->ID );
+
+		// Create the maximum date limit
+		$now_clause = $wpdb->prepare( " AND $wpdb->posts.post_date < '%s' ", $now );		// Show posts before today
+
+		/**
+		 * Filter the Maximum date clause of the query.
+		 *
+		 * @since	2.1.0
+		 *
+		 * @param string   $now_clause  The Maximum date of the WHERE clause of the query.
+		 * @param int	   $post->ID	Post ID
+		 */
+		$now_clause = apply_filters( 'crp_posts_now_date', $now_clause, $post->ID );
+
+		// Create the minimum date limit
+		$from_clause = ( 0 == $daily_range ) ? '' : $wpdb->prepare( " AND $wpdb->posts.post_date >= '%s' ", $from_date );	// Show posts after the date specified
+
+		/**
+		 * Filter the Maximum date clause of the query.
+		 *
+		 * @since	2.1.0
+		 *
+		 * @param string   $from_clause  The Minimum date of the WHERE clause of the query.
+		 * @param int	   $post->ID	Post ID
+		 */
+		$from_clause = apply_filters( 'crp_posts_from_date', $from_clause, $post->ID );
+
 		// Create the base WHERE clause
-		$where .= $wpdb->prepare( " AND MATCH (" . $match_fields . ") AGAINST ('%s') ", $stuff );	// FULLTEXT matching algorithm
-		$where .= $wpdb->prepare( " AND $wpdb->posts.post_date < '%s' ", $now );		// Show posts before today
-		$where .= $wpdb->prepare( " AND $wpdb->posts.post_date >= '%s' ", $from_date );	// Show posts after the date specified
+		$where = $match;
+		$where .= $now_clause;
+		$where .= $from_clause;
 		$where .= " AND $wpdb->posts.post_status = 'publish' ";					// Only show published posts
 		$where .= $wpdb->prepare( " AND $wpdb->posts.ID != %d ", $post->ID );	// Show posts after the date specified
 		if ( '' != $exclude_post_ids ) {
@@ -421,28 +477,40 @@ function get_crp_posts_id( $args = array() ) {
 		/**
 		 * Filter the SELECT clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $fields  The SELECT clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
 		$fields = apply_filters( 'crp_posts_fields', $fields, $post->ID );
 
 		/**
 		 * Filter the JOIN clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $join  The JOIN clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
  		$join = apply_filters( 'crp_posts_join', $join, $post->ID );
 
 		/**
 		 * Filter the WHERE clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $where  The WHERE clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
 		$where = apply_filters( 'crp_posts_where', $where, $post->ID );
 
 		/**
 		 * Filter the GROUP BY clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $groupby  The GROUP BY clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
 		$groupby = apply_filters( 'crp_posts_groupby', $groupby, $post->ID );
 
@@ -450,14 +518,20 @@ function get_crp_posts_id( $args = array() ) {
 		/**
 		 * Filter the ORDER BY clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $orderby  The ORDER BY clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
 		$orderby = apply_filters( 'crp_posts_orderby', $orderby, $post->ID );
 
 		/**
 		 * Filter the LIMIT clause of the query.
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param string   $limits  The LIMIT clause of the query.
+		 * @param int	   $post->ID	Post ID
 		 */
 		$limits = apply_filters( 'crp_posts_limits', $limits, $post->ID );
 
@@ -659,6 +733,18 @@ class CRP_Widget extends WP_Widget {
 			<?php _e( 'Thumbnail width', CRP_LOCAL_NAME ); ?>: <input class="widefat" id="<?php echo $this->get_field_id( 'thumb_width' ); ?>" name="<?php echo $this->get_field_name( 'thumb_width' ); ?>" type="text" value="<?php echo esc_attr( $thumb_width ); ?>" />
 			</label>
 		</p>
+
+		<?php
+			/**
+			 * Fires after Contextual Related Posts widget options.
+			 *
+			 * @since 2.1.0
+			 *
+			 * @param	array	$instance	Widget options array
+			 */
+			do_action( 'crp_widget_options_after', $instance );
+		?>
+
 		<?php
 	} //ending form creation
 
@@ -702,27 +788,39 @@ class CRP_Widget extends WP_Widget {
 		global $crp_settings;
 
 		parse_str( $crp_settings['exclude_on_post_types'], $exclude_on_post_types );	// Save post types in $exclude_on_post_types variable
-		if ( in_array( $post->post_type, $exclude_on_post_types ) ) return 0;	// Exit without adding related posts
+		if ( is_object( $post ) && ( in_array( $post->post_type, $exclude_on_post_types ) ) ) {
+			return 0;	// Exit without adding related posts
+		}
 
 		$exclude_on_post_ids = explode( ',', $crp_settings['exclude_on_post_ids'] );
 
 		if ( ( ( is_single() ) && ( ! is_single( $exclude_on_post_ids ) ) ) || ( ( is_page() ) && ( ! is_page( $exclude_on_post_ids ) ) ) ) {
 
 			$title = apply_filters( 'widget_title', empty( $instance['title'] ) ? strip_tags( str_replace( "%postname%", $post->post_title, $crp_settings['title'] ) ) : $instance['title'] );
-			$limit = $instance['limit'];
-			if ( empty( $limit ) ) $limit = $crp_settings['limit'];
+
+			$limit = isset( $instance['limit'] ) ? $instance['limit'] : $crp_settings['limit'];
+			if ( empty( $limit ) ) {
+				$limit = $crp_settings['limit'];
+			}
+
+			$post_thumb_op = isset( $instance['post_thumb_op'] ) ? esc_attr( $instance['post_thumb_op'] ) : 'text_only';
+			$thumb_height = isset( $instance['thumb_height'] ) ? esc_attr( $instance['thumb_height'] ) : $crp_settings['thumb_height'];
+			$thumb_width = isset( $instance['thumb_width'] ) ? esc_attr( $instance['thumb_width'] ) : $crp_settings['thumb_width'];
+			$show_excerpt = isset( $instance['show_excerpt'] ) ? esc_attr( $instance['show_excerpt'] ) : '';
+			$show_author = isset( $instance['show_author'] ) ? esc_attr( $instance['show_author'] ) : '';
+			$show_date = isset( $instance['show_date'] ) ? esc_attr( $instance['show_date'] ) : '';
 
 			$output = $before_widget;
 			$output .= $before_title . $title . $after_title;
 			$output .= ald_crp( array(
 				'is_widget' => 1,
 				'limit' => $limit,
-				'show_excerpt' => $instance['show_excerpt'],
-				'show_author' => $instance['show_author'],
-				'show_date' => $instance['show_date'],
-				'post_thumb_op' => $instance['post_thumb_op'],
-				'thumb_height' => $instance['thumb_height'],
-				'thumb_width' => $instance['thumb_width'],
+				'show_excerpt' => $show_excerpt,
+				'show_author' => $show_author,
+				'show_date' => $show_date,
+				'post_thumb_op' => $post_thumb_op,
+				'thumb_height' => $thumb_height,
+				'thumb_width' => $thumb_width,
 			) );
 
 			$output .= $after_widget;
@@ -802,6 +900,8 @@ function crp_default_options() {
 
 	$thumb_default = plugins_url( 'default.png' , __FILE__ );
 
+	$crp_get_all_image_sizes = crp_get_all_image_sizes();
+
 	// get relevant post types
 	$args = array(
 		'public' => true,
@@ -812,16 +912,10 @@ function crp_default_options() {
 		'page' => 'page',
 	);
 	$post_types	= http_build_query( $post_types, '', '&' );
-	// $post_types	= http_build_query( get_post_types( $args ), '', '&' );
 
 	$crp_settings = array(
 		// General options
 		'cache' => false,			// Cache output for faster page load
-		'limit' => '5',				// How many posts to display?
-		'daily_range' => '1095',				// How old posts should be displayed?
-		'post_types' => $post_types,		// WordPress custom post types
-		'match_content' => true,		// Match against post content as well as title
-		'match_content_words' => '0',	// How many characters of content should be matched? 0 for all chars
 
 		'add_to_content' => true,		// Add related posts to content (only on single posts)
 		'add_to_page' => true,		// Add related posts to content (only on single pages)
@@ -833,6 +927,19 @@ function crp_default_options() {
 
 		'content_filter_priority' => 10,	// Content priority
 		'show_credit' => false,		// Link to this plugin's page?
+
+		// List tuning options
+		'limit' => '6',				// How many posts to display?
+		'daily_range' => '1095',				// How old posts should be displayed?
+
+		'match_content' => true,		// Match against post content as well as title
+		'match_content_words' => '0',	// How many characters of content should be matched? 0 for all chars
+
+		'post_types' => $post_types,		// WordPress custom post types
+
+		'exclude_categories' => '',	// Exclude these categories
+		'exclude_cat_slugs' => '',	// Exclude these categories (slugs)
+		'exclude_post_ids' => '',	// Comma separated list of page / post IDs that are to be excluded in the results
 
 		// Output options
 		'title' => $title,			// Add before the content
@@ -853,23 +960,20 @@ function crp_default_options() {
 		'before_list_item' => '<li>',	// Before each list item
 		'after_list_item' => '</li>',	// After each list item
 
-		'exclude_categories' => '',	// Exclude these categories
-		'exclude_cat_slugs' => '',	// Exclude these categories (slugs)
-		'exclude_post_ids' => '',	// Comma separated list of page / post IDs that are to be excluded in the results
 		'exclude_on_post_ids' => '', 	// Comma separate list of page/post IDs to not display related posts on
 		'exclude_on_post_types' => '',		// WordPress custom post types
 
-		'post_thumb_op' => 'text_only',	// Default option to display text and no thumbnails in posts
+		// Thumbnail options
+		'post_thumb_op' => 'inline',	// Default option to display text and no thumbnails in posts
+		'thumb_size' => 'crp_thumbnail',	// Default thumbnail size
 		'thumb_height' => '150',	// Height of thumbnails
 		'thumb_width' => '150',	// Width of thumbnails
-		'thumb_crop' => false,		// Crop mode. default is soft proportional
+		'thumb_crop' => true,		// Crop mode. default is hard crop
 		'thumb_html' => 'html',		// Use HTML or CSS for width and height of the thumbnail?
 		'thumb_meta' => 'post-image',	// Meta field that is used to store the location of default thumbnail image
-		'scan_images' => false,			// Scan post for images
+		'scan_images' => true,			// Scan post for images
 		'thumb_default' => $thumb_default,	// Default thumbnail image
 		'thumb_default_show' => true,	// Show default thumb if none found (if false, don't show thumb at all)
-		'thumb_timthumb' => false,	// Use timthumb
-		'thumb_timthumb_q' => '75',	// Quality attribute for timthumb
 
 		// Feed options
 		'limit_feed' => '5',				// How many posts to display in feeds
@@ -880,7 +984,7 @@ function crp_default_options() {
 
 		// Custom styles
 		'custom_CSS' => '',			// Custom CSS to style the output
-		'include_default_style' => false,	// Include without VAT
+		'include_default_style' => true,	// Include default style
 	);
 
 
@@ -1058,38 +1162,21 @@ add_action( 'wpmu_new_blog', 'crp_activate_new_site' );
 function crp_add_image_sizes() {
 	global $crp_settings;
 
-	$width = empty( $crp_settings['thumb_width'] ) ? 150 : $crp_settings['thumb_width'];
-	$height = empty( $crp_settings['thumb_height'] ) ? 150 : $crp_settings['thumb_height'];
-	$crop = isset( $crp_settings['thumb_crop'] ) ? $crp_settings['thumb_crop'] : false;
+	if ( ! in_array( $crp_settings['thumb_size'], get_intermediate_image_sizes() ) ) {
+		$crp_settings['thumb_size'] = 'crp_thumbnail';
+		update_option( 'ald_crp_settings', $crp_settings );
+	}
 
-	add_image_size( 'crp_thumbnail', $width, $height, $crop );
+	// Add image sizes if 'crp_thumbnail' is selected or the selected thumbnail size is no longer valid
+	if ( 'crp_thumbnail' == $crp_settings['thumb_size'] ) {
+		$width = empty( $crp_settings['thumb_width'] ) ? 150 : $crp_settings['thumb_width'];
+		$height = empty( $crp_settings['thumb_height'] ) ? 150 : $crp_settings['thumb_height'];
+		$crop = isset( $crp_settings['thumb_crop'] ) ? $crp_settings['thumb_crop'] : false;
+
+		add_image_size( 'crp_thumbnail', $width, $height, $crop );
+	}
 }
 add_action( 'init', 'crp_add_image_sizes' );
-
-
-/**
- * Filter function to resize post thumbnail. Filters: crp_postimage.
- *
- * @since 1.8.4
- *
- * @param 	string		$postimage
- * @param	string|int	$thumb_width
- * @param	string|int	$thumb_height
- * @param	boolean		$thumb_timthumb
- * @param	string|int	$thumb_timthumb_q
- * @return	string 		Post image output
- */
-function crp_scale_thumbs( $postimage, $thumb_width, $thumb_height, $thumb_timthumb, $thumb_timthumb_q, $post ) {
-	global $crp_url;
-
-	if ( $thumb_timthumb ) {
-		$new_pi = $crp_url . '/timthumb/timthumb.php?src=' . urlencode( $postimage ) . '&amp;w=' . $thumb_width . '&amp;h=' . $thumb_height . '&amp;zc=1&amp;q=' . $thumb_timthumb_q;
-	} else {
-		$new_pi = $postimage;
-	}
-	return $new_pi;
-}
-add_filter( 'crp_postimage', 'crp_scale_thumbs', 10, 6 );
 
 
 /**
@@ -1102,42 +1189,58 @@ add_filter( 'crp_postimage', 'crp_scale_thumbs', 10, 6 );
  */
 function crp_get_the_post_thumbnail( $args = array() ) {
 
+	global $crp_url, $crp_settings;
+
 	$defaults = array(
 		'postid' => '',
-		'thumb_height' => '50',			// Max height of thumbnails
-		'thumb_width' => '50',			// Max width of thumbnails
+		'thumb_height' => '150',			// Max height of thumbnails
+		'thumb_width' => '150',			// Max width of thumbnails
 		'thumb_meta' => 'post-image',		// Meta field that is used to store the location of default thumbnail image
 		'thumb_html' => 'html',		// HTML / CSS for width and height attributes
 		'thumb_default' => '',	// Default thumbnail image
 		'thumb_default_show' => true,	// Show default thumb if none found (if false, don't show thumb at all)
-		'thumb_timthumb' => true,	// Use timthumb
-		'thumb_timthumb_q' => '75',	// Quality attribute for timthumb
 		'scan_images' => false,			// Scan post for images
 		'class' => 'crp_thumb',			// Class of the thumbnail
-		'filter' => 'crp_postimage',			// Class of the thumbnail
 	);
 
 	// Parse incomming $args into an array and merge it with $defaults
 	$args = wp_parse_args( $args, $defaults );
 
+	// Issue notice for deprecated arguments
+	if ( isset( $args['thumb_timthumb'] ) ) {
+		_deprecated_argument( __FUNCTION__, '2.1', __( 'thumb_timthumb argument has been deprecated', CRP_LOCAL_NAME ) );
+	}
+
+	if ( isset( $args['thumb_timthumb_q'] ) ) {
+		_deprecated_argument( __FUNCTION__, '2.1', __( 'thumb_timthumb_q argument has been deprecated', CRP_LOCAL_NAME ) );
+	}
+
+	if ( isset( $args['filter'] ) ) {
+		_deprecated_argument( __FUNCTION__, '2.1', __( 'filter argument has been deprecated', CRP_LOCAL_NAME ) );
+	}
+
 	// Declare each item in $args as its own variable i.e. $type, $before.
 	extract( $args, EXTR_SKIP );
 
 	$result = get_post( $postid );
-	$title = get_the_title( $postid );
+	$post_title = get_the_title( $postid );
 
 	$output = '';
-	$thumb_html = ( 'css' == $thumb_html ) ? 'style="max-width:' . $thumb_width . 'px;max-height:' . $thumb_height . 'px;"' : 'width="' . $thumb_width . '" height="' .$thumb_height . '"';
+	$postimage = '';
 
 	// Let's start fetching the thumbnail. First place to look is in the post meta defined in the Settings page
-	$postimage = get_post_meta( $result->ID, $thumb_meta, true );	// Check the post meta first
+	if ( ! $postimage ) {
+		$postimage = get_post_meta( $result->ID, $thumb_meta, true );	// Check the post meta first
+		$pick = 'meta';
+	}
 
 	// If there is no thumbnail found, check the post thumbnail
 	if ( ! $postimage ) {
-		if ( function_exists( 'has_post_thumbnail' ) && ( ( '' != wp_get_attachment_image_src( get_post_thumbnail_id( $result->ID ) ) ) || ( false != wp_get_attachment_image_src( get_post_thumbnail_id( $result->ID ) ) ) ) ) {
-			$postthumb = wp_get_attachment_image_src( get_post_thumbnail_id( $result->ID ), 'crp_thumbnail' );
+		if ( false != get_post_thumbnail_id( $result->ID ) )  {
+			$postthumb = wp_get_attachment_image_src( get_post_thumbnail_id( $result->ID ), $crp_settings['thumb_size'] );
 			$postimage = $postthumb[0];
 		}
+		$pick = 'featured';
 	}
 
 	// If there is no thumbnail found, fetch the first image in the post, if enabled
@@ -1146,11 +1249,22 @@ function crp_get_the_post_thumbnail( $args = array() ) {
 		if ( isset( $matches[1][0] ) && $matches[1][0] ) { 			// any image there?
 			$postimage = $matches[1][0]; // we need the first one only!
 		}
+		if ( $postimage ) {
+			$postimage_id = crp_get_attachment_id_from_url( $postimage );
+
+			if ( false != wp_get_attachment_image_src( $postimage_id, $crp_settings['thumb_size'] ) ) {
+				$postthumb = wp_get_attachment_image_src( $postimage_id, $crp_settings['thumb_size'] );
+				$postimage = $postthumb[0];
+			}
+			$pick = 'correct';
+		}
+		$pick .= 'first';
 	}
 
 	// If there is no thumbnail found, fetch the first child image
 	if ( ! $postimage ) {
-		$postimage = crp_get_first_image($result->ID);	// Get the first image
+		$postimage = crp_get_first_image( $result->ID );	// Get the first image
+		$pick = 'firstchild';
 	}
 
 	// If no other thumbnail set, try to get the custom video thumbnail set by the Video Thumbnails plugin
@@ -1167,17 +1281,47 @@ function crp_get_the_post_thumbnail( $args = array() ) {
 	if ( $postimage ) {
 
 		/**
-		 * Get the first image in the post.
+		 * Filters the thumbnail image URL.
 		 *
-		 * @since 1.8.10
+		 * Use this filter to modify the thumbnail URL that is automatically created
+		 * Before v2.1 this was used for cropping the post image using timthumb
 		 *
-		 * @param mixed $postID	Post ID
+		 * @since	2.1.0
+		 *
+		 * @param	string	$postimage		URL of the thumbnail image
+		 * @param	int		$thumb_width	Thumbnail width
+		 * @param	int		$thumb_height	Thumbnail height
+		 * @param	object	$result			Post Object
 		 */
-		$postimage = apply_filters( $filter, $postimage, $thumb_width, $thumb_height, $thumb_timthumb, $thumb_timthumb_q, $result );
+		$postimage = apply_filters( 'crp_thumb_url', $postimage, $thumb_width, $thumb_height, $result );
+
+		/* Backward compatibility */
+		$thumb_timthumb = false;
+		$thumb_timthumb_q = 75;
+
+		/**
+		 * Filters the thumbnail image URL.
+		 *
+		 * @since	1.8.10
+		 * @deprecated	2.1	Use crp_thumb_url instead.
+		 *
+		 * @param	string	$postimage		URL of the thumbnail image
+		 * @param	int		$thumb_width	Thumbnail width
+		 * @param	int		$thumb_height	Thumbnail height
+		 * @param	boolean	$thumb_timthumb	Enable timthumb?
+		 * @param	int		$thumb_timthumb_q	Quality of timthumb thumbnail.
+		 * @param	object	$result			Post Object
+		 */
+		$postimage = apply_filters( 'crp_postimage', $postimage, $thumb_width, $thumb_height, $thumb_timthumb, $thumb_timthumb_q, $result );
+
 		if ( is_ssl() ) {
 		    $postimage = preg_replace( '~http://~', 'https://', $postimage );
 		}
-		$output .= '<img src="'.$postimage.'" alt="'.$title.'" title="'.$title.'" '.$thumb_html.' class="'.$class.'" />';
+
+		$thumb_html = ( 'css' == $thumb_html ) ? 'style="max-width:' . $thumb_width . 'px;max-height:' . $thumb_height . 'px;"' : 'width="' . $thumb_width . '" height="' .$thumb_height . '"';
+
+		$class .= ' crp_' . $pick;
+		$output .= '<img src="' . $postimage . '" alt="' . $post_title . '" title="' . $post_title . '" ' . $thumb_html . ' class="' . $class . '" />';
 	}
 
 	/**
@@ -1186,8 +1330,9 @@ function crp_get_the_post_thumbnail( $args = array() ) {
 	 * @since	1.9
 	 *
 	 * @param	array	$output	Formatted output
+	 * @param	array	$args	Argument list
 	 */
-	return apply_filters( 'crp_get_the_post_thumbnail', $output );
+	return apply_filters( 'crp_get_the_post_thumbnail', $output, $args );
 }
 
 
@@ -1213,7 +1358,7 @@ function crp_get_first_image( $postID ) {
 
 	if ( $attachments ) {
 		foreach ( $attachments as $attachment ) {
-			$image_attributes = wp_get_attachment_image_src( $attachment->ID, 'crp_thumbnail' );
+			$image_attributes = wp_get_attachment_image_src( $attachment->ID, 'thumbnail' )  ? wp_get_attachment_image_src( $attachment->ID, 'thumbnail' ) : wp_get_attachment_image_src( $attachment->ID, 'full' );
 
 			/**
 			 * Filters first child attachment from the post.
@@ -1228,6 +1373,53 @@ function crp_get_first_image( $postID ) {
 	} else {
 		return false;
 	}
+}
+
+
+/**
+ * Function to get the attachment ID from the attachment URL.
+ *
+ * @since 2.1
+ *
+ * @param	string	$attachment_url	Attachment URL
+ * @return	int		Attachment ID
+ */
+function crp_get_attachment_id_from_url( $attachment_url = '' ) {
+
+	global $wpdb;
+	$attachment_id = false;
+
+	// If there is no url, return.
+	if ( '' == $attachment_url ) {
+		return;
+	}
+
+	// Get the upload directory paths
+	$upload_dir_paths = wp_upload_dir();
+
+	// Make sure the upload path base directory exists in the attachment URL, to verify that we're working with a media library image
+	if ( false !== strpos( $attachment_url, $upload_dir_paths['baseurl'] ) ) {
+
+		// If this is the URL of an auto-generated thumbnail, get the URL of the original image
+		$attachment_url = preg_replace( '/-\d+x\d+(?=\.(jpg|jpeg|png|gif)$)/i', '', $attachment_url );
+
+		// Remove the upload path base directory from the attachment URL
+		$attachment_url = str_replace( $upload_dir_paths['baseurl'] . '/', '', $attachment_url );
+
+		// Finally, run a custom database query to get the attachment ID from the modified attachment URL
+		$attachment_id = $wpdb->get_var( $wpdb->prepare( "SELECT wposts.ID FROM $wpdb->posts wposts, $wpdb->postmeta wpostmeta WHERE wposts.ID = wpostmeta.post_id AND wpostmeta.meta_key = '_wp_attached_file' AND wpostmeta.meta_value = '%s' AND wposts.post_type = 'attachment'", $attachment_url ) );
+
+	}
+
+	/**
+	 * Filters attachment ID generated from URL.
+	 *
+	 * @since	2.1
+	 *
+	 * @param	int		$attachment_id	Attachment ID
+	 * @param	string	$attachment_url	Attachment URL
+	 */
+	return apply_filters( 'crp_get_attachment_id_from_url', $attachment_id, $attachment_url );
 }
 
 
@@ -1302,6 +1494,62 @@ function crp_max_formatted_content( $content, $no_of_char = -1 ) {
 	 * @param	int		$no_of_char	Maximum length of excerpt in characters
 	 */
 	return apply_filters( 'crp_max_formatted_content' , $content, $no_of_char );
+}
+
+
+/**
+ * Get all image sizes.
+ *
+ * @since	2.0.0
+ * @param	string	$size	Get specific image size
+ * @return	array	Image size names along with width, height and crop setting
+ */
+function crp_get_all_image_sizes( $size = '' ) {
+	global $_wp_additional_image_sizes;
+
+	/* Get the intermediate image sizes and add the full size to the array. */
+	$intermediate_image_sizes = get_intermediate_image_sizes();
+
+	foreach( $intermediate_image_sizes as $_size ) {
+        if ( in_array( $_size, array( 'thumbnail', 'medium', 'large' ) ) ) {
+
+            $sizes[ $_size ]['name'] = $_size;
+            $sizes[ $_size ]['width'] = get_option( $_size . '_size_w' );
+            $sizes[ $_size ]['height'] = get_option( $_size . '_size_h' );
+            $sizes[ $_size ]['crop'] = (bool) get_option( $_size . '_crop' );
+
+	        if ( ( 0 == $sizes[ $_size ]['width'] ) && ( 0 == $sizes[ $_size ]['height'] ) ) {
+	            unset( $sizes[ $_size ] );
+	        }
+
+        } elseif ( isset( $_wp_additional_image_sizes[ $_size ] ) ) {
+
+            $sizes[ $_size ] = array(
+	            'name' => $_size,
+                'width' => $_wp_additional_image_sizes[ $_size ]['width'],
+                'height' => $_wp_additional_image_sizes[ $_size ]['height'],
+                'crop' => (bool) $_wp_additional_image_sizes[ $_size ]['crop'],
+            );
+		}
+	}
+
+	/* Get only 1 size if found */
+    if ( $size ) {
+        if ( isset( $sizes[ $size ] ) ) {
+			return $sizes[ $size ];
+        } else {
+			return false;
+        }
+    }
+
+	/**
+	 * Filters array of image sizes.
+	 *
+	 * @since	2.0
+	 *
+	 * @param	array	$sizes	Image sizes
+	 */
+	return apply_filters( 'crp_get_all_image_sizes', $sizes );
 }
 
 

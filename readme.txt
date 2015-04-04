@@ -1,10 +1,10 @@
-=== Contextual Related Posts ===
+﻿=== Contextual Related Posts ===
 Tags: related posts, related, similar posts, posts, post, feed, feeds, rss, widget, thumbnail
 Contributors: Ajay
 Donate link: http://ajaydsouza.com/donate/
 Stable tag: trunk
 Requires at least: 3.5
-Tested up to: 4.1
+Tested up to: 4.2
 License: GPLv2 or later
 
 Display related posts on your WordPress blog and feed. Supports thumbnails, shortcodes, widgets and custom post types!
@@ -42,7 +42,7 @@ The plugin also comes with it's very own inbuilt stylesheet that let's your rela
 
 = Donations =
 
-I spend a significant amount of my free time maintaing, updating and more importantly supporting this plugin. Those who have sought support in the support forums know that I have done my best to answer your question and solve your problem.
+I spend a significant amount of my free time maintaining, updating and more importantly supporting this plugin. Those who have sought support in the support forums know that I have done my best to answer your question and solve your problem.
 If you have been using this plugin and find this useful, do consider making a donation. This helps me pay for my hosting and domains.
 
 = Contribute =
@@ -53,18 +53,30 @@ So, if you've got some cool feature that you'd like to implement into the plugin
 = Translations =
 Contextual Related Posts is now on Transifex ready for translation courtesy the <a href="http://wp-translations.org/translators-wp-translations/">WP Translations</a>. WP-Translations is the place where you will find a number of WordPress amazing Plugins and Themes to make them available in your home language. In exchange you will receive credit for your work and will certainly make part of the WP community history in your country.
 
-If you're a translator, do consider joining the Wp Translations team.
+If you're a translator, do consider joining the Wp Translations team and translate <a href="https://www.transifex.com/projects/p/contextual-related-posts/">Contextual Related Posts on Transifex</a>.
 
-Visit <a href="https://www.transifex.com/projects/p/contextual-related-posts/">Contextual Related Posts on Transifex</a>.
 
 == Upgrade Notice ==
 
-= 2.0.1 =
-* New multisite support; Thumbnails no longer need timthumb; HTTPS support for thumbnails; filters for mySQL query;
+= 2.1.0 =
+* Separate cache for feeds; Deprecated timthumb; Bug fixes and new features;
 Check the Changelog for a full list of changes.
 
 
 == Changelog ==
+
+= 2.1.0 =
+* New: Separate cache for related posts added to feeds. Prevents conflict with the cache for normal related posts
+* New: Timthumb has been deprecated
+* New: Setting "Related posts should be newer than:" to 0 to disable limiting posts by age
+* New: Filters `crp_posts_match`, `crp_posts_now_date`, `crp_posts_from_date` to modify the WHERE clause
+* Modified: `thumb_timthumb`, `thumb_timthumb_q` and `filter` attributes for the function `crp_get_the_post_thumbnail` have been deprecated. If you're using this function, an entry will be created for the deprecated log
+* Modified: Reset default thumbnail URL location to plugin default if the field is blank or only contains `/default.png`
+* Modified: Meta-box will no longer be displayed on non-public post types
+* Modified: For first image, the plugin will attempt to seek the correct thumbnail size if available
+* Fixed: Author link was incorrectly displayed multiple times in the list when Show Author was enabled
+* Fixed: WP Notice Errors when using the Widget via the Customizer menu in WordPress
+* Fixed: Incorrect thumbnail was pulled on attachment pages
 
 = 2.0.1 =
 * Fixed: Clear Cache button which broke in 2.0.0
@@ -309,14 +321,19 @@ Check the Changelog for a full list of changes.
 
 5. Optionally visit the **Custom Styles** tab to add any custom CSS styles. These are added to `wp_head` on the pages where the posts are displayed
 
+
 == Screenshots ==
 
 1. CRP options in WP-Admin - General options
-2. CRP options in WP-Admin - Output options
-3. CRP options in WP-Admin - Feed options
-4. CRP options in WP-Admin - Custom styles
-5. CRP Widget
-6. Contextual Related Post metabox in the Edit Posts screen
+2. CRP options in WP-Admin - List tuning options
+3. CRP options in WP-Admin - Output options
+4. CRP options in WP-Admin - Thumbnail options
+5. CRP options in WP-Admin - Feed options
+6. CRP options in WP-Admin - Custom styles
+7. Default style of Related Posts
+8. Contextual Related Post metabox in the Edit Posts screen
+9. CRP Widget
+
 
 == Frequently Asked Questions ==
 
