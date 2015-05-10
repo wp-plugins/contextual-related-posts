@@ -15,7 +15,7 @@
  * Plugin Name:	Contextual Related Posts
  * Plugin URI:	http://ajaydsouza.com/wordpress/plugins/contextual-related-posts/
  * Description:	Display a set of related posts on your website or in your feed. Increase reader retention and reduce bounce rates
- * Version: 	2.1.0
+ * Version: 	2.1.1
  * Author: 		Ajay D'Souza
  * Author URI: 	http://ajaydsouza.com
  * Text Domain:	crp
@@ -302,7 +302,7 @@ function ald_crp( $args = array() ) {
 		 */
 		$output .= apply_filters( 'crp_after_list', $after_list );
 
-		$clearfix = '<div style="clear:both"></div>';
+		$clearfix = '<div class="crp_clear"></div>';
 
 		/**
 		 * Filter the clearfix div tag. This is included after the closing tag to clear any miscellaneous floating elements;
