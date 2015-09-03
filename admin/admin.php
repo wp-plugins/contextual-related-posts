@@ -7,7 +7,7 @@
  * @package   Contextual_Related_Posts
  * @author    Ajay D'Souza <me@ajaydsouza.com>
  * @license   GPL-2.0+
- * @link      http://ajaydsouza.com
+ * @link      https://webberzone.com
  * @copyright 2009-2015 Ajay D'Souza
  */
 
@@ -56,6 +56,8 @@ function crp_options() {
 		$crp_settings['add_to_archives'] = ( isset( $_POST['add_to_archives'] ) ? true : false );
 
 		$crp_settings['content_filter_priority'] = intval( $_POST['content_filter_priority'] );
+		$crp_settings['show_metabox'] = ( isset( $_POST['show_metabox'] ) ? true : false );
+		$crp_settings['show_metabox_admins'] = ( isset( $_POST['show_metabox_admins'] ) ? true : false );
 		$crp_settings['show_credit'] = ( isset( $_POST['show_credit'] ) ? true : false );
 
 		/**** Output options ****/
@@ -82,10 +84,22 @@ function crp_options() {
 
 		/**** Thumbnail options ****/
 		$crp_settings['post_thumb_op'] = wp_kses_post( $_POST['post_thumb_op'] );
+
 		$crp_settings['thumb_size'] = $_POST['thumb_size'];
-		$crp_settings['thumb_height'] = intval( $_POST['thumb_height'] );
-		$crp_settings['thumb_width'] = intval( $_POST['thumb_width'] );
-		$crp_settings['thumb_crop'] = ( isset( $_POST['thumb_crop'] ) ? true : false );
+
+		if ( 'crp_thumbnail' != $crp_settings['thumb_size'] ) {
+			$crp_thumb_size = crp_get_all_image_sizes( $crp_settings['thumb_size'] );
+
+			$crp_settings['thumb_height'] = intval( $crp_thumb_size['height'] );
+			$crp_settings['thumb_width'] = intval( $crp_thumb_size['width'] );
+			$crp_settings['thumb_crop'] = $crp_thumb_size['crop'];
+		} else {
+			$crp_settings['thumb_height'] = intval( $_POST['thumb_height'] );
+			$crp_settings['thumb_width'] = intval( $_POST['thumb_width'] );
+			$crp_settings['thumb_crop'] = ( isset( $_POST['thumb_crop'] ) ? true : false );
+		}
+
+
 		$crp_settings['thumb_html'] = $_POST['thumb_html'];
 
 		$crp_settings['thumb_meta'] = ( '' == $_POST['thumb_meta'] ? 'post-image' : wp_kses_post( $_POST['thumb_meta'] ) );
@@ -100,19 +114,20 @@ function crp_options() {
 		$crp_settings['thumb_width_feed'] = intval( $_POST['thumb_width_feed'] );
 		$crp_settings['show_excerpt_feed'] = ( isset( $_POST['show_excerpt_feed'] ) ? true : false );
 
-		/**** Custom styles ****/
+		/**** Styles ****/
 		$crp_settings['custom_CSS'] = wp_kses_post( $_POST['custom_CSS'] );
 
-		if ( isset( $_POST['include_default_style'] ) ) {
+		$crp_settings['crp_styles'] = wp_kses_post( $_POST['crp_styles'] );
+
+		if ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) {
 			$crp_settings['include_default_style'] = true;
 			$crp_settings['post_thumb_op'] = 'inline';
-			$crp_settings['thumb_height'] = 150;
-			$crp_settings['thumb_width'] = 150;
 			$crp_settings['show_excerpt'] = false;
 			$crp_settings['show_author'] = false;
 			$crp_settings['show_date'] = false;
-		} else {
+		} elseif ( 'text_only' == $crp_settings['crp_styles'] ) {
 			$crp_settings['include_default_style'] = false;
+			$crp_settings['post_thumb_op'] = 'text_only';
 		}
 
 		/**** Exclude categories ****/
@@ -141,6 +156,8 @@ function crp_options() {
 		/**
 		 * Filters $crp_settings before it is saved into the database
 		 *
+		 * @since	2.0.0
+		 *
 		 * @param	array	$crp_settings	CRP settings
 		 * @param	array	$_POST			POST array that consists of the saved settings
 		 */
@@ -157,17 +174,19 @@ function crp_options() {
 		$posts_types_excl = array_intersect( $wp_post_types, $exclude_on_post_types );
 
 		// Delete the cache
-		delete_post_meta_by_key( 'crp_related_posts' );
-		delete_post_meta_by_key( 'crp_related_posts_widget' );
-		delete_post_meta_by_key( 'crp_related_posts_feed' );
-		delete_post_meta_by_key( 'crp_related_posts_widget_feed' );
+		crp_cache_delete();
 
 		/* Echo a success message */
-		$str = '<div id="message" class="updated fade"><p>'. __( 'Options saved successfully.', CRP_LOCAL_NAME ) . '</p>';
+		$str = '<div id="message" class="notice is-dismissible updated"><p>'. __( 'Options saved successfully. If enabled, the cache has been cleared.', CRP_LOCAL_NAME ) . '</p>';
 
-		if ( isset( $_POST['include_default_style'] ) ) {
-			$str .= '<p>'. __( 'Default styles selected. Thumbnail width, height and crop settings have been fixed. Author, Excerpt and Date will not be displayed.', CRP_LOCAL_NAME ) . '</p>';
-
+		if ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) {
+			$str .= '<p>'. __( 'Rounded Thumbnails style selected. Author, Excerpt and Date will not be displayed.', CRP_LOCAL_NAME ) . '</p>';
+		}
+		if ( 'text_only' == $crp_settings['crp_styles'] ) {
+			$str .= '<p>'. __( 'Text Only style selected. Thumbnails will not be displayed.', CRP_LOCAL_NAME ) . '</p>';
+		}
+		if ( 'crp_thumbnail' != $crp_settings['thumb_size'] ) {
+			$str .= '<p>'. sprintf( __( 'Pre-built thumbnail size selected. Thumbnail set to %d x %d.', CRP_LOCAL_NAME ), $crp_settings['thumb_width'], $crp_settings['thumb_height'] ) . '</p>';
 		}
 
 		$str .= '</div>';
@@ -196,9 +215,16 @@ function crp_options() {
 	}
 
 	if ( ( isset( $_POST['crp_recreate'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
-		$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related" );
-		$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_title" );
-		$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_content" );
+
+		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related'" ) ) {
+			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related" );
+		}
+		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related_title'" ) ) {
+			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_title" );
+		}
+		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related_content'" ) ) {
+			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_content" );
+		}
 
 		crp_single_activate();
 
@@ -263,7 +289,7 @@ function crp_adminhead() {
 	.postbox.closed .handlediv:before {
 		content: '\f140';
 	}
-	.wrap h2:before {
+	.wrap h1:before {
 	    content: "\f237";
 	    display: inline-block;
 	    -webkit-font-smoothing: antialiased;
@@ -323,213 +349,3 @@ function crp_adminhead() {
 <?php
 }
 
-
-/**
- * Add link to WordPress plugin action links.
- *
- * @version	1.8.10
- *
- * @param	array	$links
- * @return	array	Links array with our settings link added
- */
-function crp_plugin_actions_links( $links ) {
-
-	return array_merge( array(
-			'settings' => '<a href="' . admin_url( 'options-general.php?page=crp_options' ) . '">' . __('Settings', CRP_LOCAL_NAME ) . '</a>'
-		), $links );
-
-}
-add_filter( 'plugin_action_links_' . plugin_basename( plugin_dir_path( __DIR__ ) . 'contextual-related-posts.php' ), 'crp_plugin_actions_links' );
-
-
-/**
- * Add links to the plugin action row.
- *
- * @since	1.4
- *
- * @param	array	$links
- * @param	array	$file
- * @return	array	Links array with our links added
- */
-function crp_plugin_actions( $links, $file ) {
-
-	$plugin = plugin_basename( plugin_dir_path( __DIR__ ) . 'contextual-related-posts.php' );
-
-	/**** Add links ****/
-	if ( $file == $plugin ) {
-		$links[] = '<a href="http://wordpress.org/support/plugin/contextual-related-posts">' . __( 'Support', CRP_LOCAL_NAME ) . '</a>';
-		$links[] = '<a href="http://ajaydsouza.com/donate/">' . __( 'Donate', CRP_LOCAL_NAME ) . '</a>';
-		$links[] = '<a href="http://github.com/ajaydsouza/contextual-related-posts">' . __( 'Contribute', CRP_LOCAL_NAME ) . '</a>';
-	}
-	return $links;
-}
-add_filter( 'plugin_row_meta', 'crp_plugin_actions', 10, 2 ); // only 2.8 and higher
-
-
-
-/**
- * Function to add a notice to the admin page.
- *
- * @since	1.8
- *
- * @return	string	Echoed string
- */
-function crp_admin_notice() {
-	$plugin_settings_page = '<a href="' . admin_url( 'options-general.php?page=crp_options' ) . '">' . __( 'plugin settings page', CRP_LOCAL_NAME ) . '</a>';
-
-	if ( ! current_user_can( 'manage_options' ) ) return;
-
-    echo '<div class="error">
-       <p>' . __( "Contextual Related Posts plugin has just been installed / upgraded. Please visit the {$plugin_settings_page} to configure.", CRP_LOCAL_NAME ).'</p>
-    </div>';
-}
-// add_action( 'admin_notices', 'crp_admin_notice' );
-
-
-/**
- * Function to clear the CRP Cache with Ajax.
- *
- * @since	1.8.10
- *
- */
-function crp_ajax_clearcache() {
-	global $wpdb;
-
-	$rows1 = $wpdb->query( "
-		DELETE FROM " . $wpdb->postmeta . "
-		WHERE meta_key='crp_related_posts'
-	" );
-
-	$rows2 = $wpdb->query( "
-		DELETE FROM " . $wpdb->postmeta . "
-		WHERE meta_key='crp_related_posts_widget'
-	" );
-
-	$rows3 = $wpdb->query( "
-		DELETE FROM " . $wpdb->postmeta . "
-		WHERE meta_key='crp_related_posts_feed'
-	" );
-
-	$rows4 = $wpdb->query( "
-		DELETE FROM " . $wpdb->postmeta . "
-		WHERE meta_key='crp_related_posts_widget_feed'
-	" );
-
-	/**** Did an error occur? ****/
-	if ( ( $rows1 === false ) && ( $rows2 === false ) && ( $rows3 === false ) && ( $rows4 === false ) ) {
-		exit( json_encode( array(
-			'success' => 0,
-			'message' => __('An error occurred clearing the cache. Please contact your site administrator.\n\nError message:\n', CRP_LOCAL_NAME) . $wpdb->print_error(),
-		) ) );
-	} else {	// No error, return the number of
-		exit( json_encode( array(
-			'success' => 1,
-			'message' => ($rows1+$rows2+$rows3+$rows4) . __(' cached row(s) cleared', CRP_LOCAL_NAME),
-		) ) );
-	}
-}
-add_action( 'wp_ajax_crp_clear_cache', 'crp_ajax_clearcache' );
-
-
-/**
- * Function to add meta box in Write screens of Post, Page and Custom Post Types.
- *
- * @since	1.9.1
- *
- * @param	text	$post_type
- * @param	object	$post
- */
-function crp_add_meta_box( $post_type, $post ) {
-
-	$args = array(
-	   'public'   => true,
-	);
-	$post_types = get_post_types( $args );
-
-	if ( in_array( $post_type, $post_types ) ) {
-
-    	add_meta_box(
-    		'crp_metabox',
-    		__( 'Contextual Related Posts', CRP_LOCAL_NAME ),
-    		'crp_call_meta_box',
-    		$post_type,
-    		'advanced',
-    		'default'
-    	);
-	}
-}
-add_action( 'add_meta_boxes', 'crp_add_meta_box' , 10, 2 );
-
-
-/**
- * Function to call the meta box.
- *
- * @since	1.9.1
- *
- */
-function crp_call_meta_box() {
-	global $post, $crp_settings;
-
-	/**** Add an nonce field so we can check for it later. ****/
-	wp_nonce_field( 'crp_meta_box', 'crp_meta_box_nonce' );
-
-	$results = get_post_meta( $post->ID, $crp_settings['thumb_meta'], true );
-	$value = ( $results ) ? $results : '';
-?>
-	<p>
-		<label for="thumb_meta"><?php _e( "Location of thumbnail:", CRP_LOCAL_NAME ); ?></label>
-		<input type="text" id="thumb_meta" name="thumb_meta" value="<?php echo esc_attr( $value ) ?>" style="width:100%" />
-		<em><?php _e( "Enter the full URL to the image (JPG, PNG or GIF) you'd like to use. This image will be used for the post. It will be resized to the thumbnail size set under Settings &raquo; Related Posts &raquo; Output Options", CRP_LOCAL_NAME ); ?></em>
-		<em><?php _e( "The URL above is saved in the meta field: ", CRP_LOCAL_NAME ); ?></em><strong><?php echo $crp_settings['thumb_meta']; ?></strong>
-	</p>
-
-	<?php
-	if ( $results ) {
-		echo '<img src="' . $value . '" style="max-width:100%" />';
-	}
-}
-
-
-/**
- * Function to save the meta box.
- *
- * @since	1.9.1
- *
- * @param mixed $post_id
- */
-function crp_save_meta_box( $post_id ) {
-	global $crp_settings;
-
-    /**** Bail if we're doing an auto save ****/
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) return;
-
-    /**** if our nonce isn't there, or we can't verify it, bail ****/
-    if ( ! isset( $_POST['crp_meta_box_nonce'] ) || ! wp_verify_nonce( $_POST['crp_meta_box_nonce'], 'crp_meta_box' ) ) return;
-
-    /**** if our current user can't edit this post, bail ****/
-    if ( ! current_user_can( 'edit_posts' ) ) return;
-
-    if ( isset( $_POST['thumb_meta'] ) ) {
-    	$thumb_meta = $_POST['thumb_meta'] == '' ? '' : $_POST['thumb_meta'];
-    }
-
-	$crp_post_meta = get_post_meta( $post_id, $crp_settings['thumb_meta'], true );
-	if ( $crp_post_meta && '' != $crp_post_meta ) {
-		$gotmeta = true;
-	} else {
-		$gotmeta = false;
-	}
-
-	if ( $gotmeta && '' != $thumb_meta ) {
-		update_post_meta( $post_id, $crp_settings['thumb_meta'], $thumb_meta );
-	} elseif ( ! $gotmeta && '' != $thumb_meta ) {
-		add_post_meta( $post_id, $crp_settings['thumb_meta'], $thumb_meta );
-	} else {
-		delete_post_meta( $post_id, $crp_settings['thumb_meta'] );
-	}
-
-}
-add_action( 'save_post', 'crp_save_meta_box' );
-
-
-?>
