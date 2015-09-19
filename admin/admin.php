@@ -38,6 +38,18 @@ function crp_options() {
 	parse_str( $crp_settings['exclude_on_post_types'], $exclude_on_post_types );
 	$posts_types_excl = array_intersect( $wp_post_types, $exclude_on_post_types );
 
+	// Temporary check if default styles are off and rounded thumbnails are selected - will be eventually deprecated
+	// This is a mismatch, so we force it to no style
+	if ( ( false == $crp_settings['include_default_style'] ) && ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) ) {
+		$crp_settings['crp_styles'] = 'no_style';
+		update_option( 'ald_crp_settings', $crp_settings );
+	}
+	if ( ( true == $crp_settings['include_default_style'] ) && ( 'rounded_thumbs' != $crp_settings['crp_styles'] ) ) {
+		$crp_settings['crp_styles'] = 'rounded_thumbs';
+		update_option( 'ald_crp_settings', $crp_settings );
+	}
+
+
 	if ( ( isset( $_POST['crp_save'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
 
 		/**** General options ***/
@@ -128,15 +140,17 @@ function crp_options() {
 		} elseif ( 'text_only' == $crp_settings['crp_styles'] ) {
 			$crp_settings['include_default_style'] = false;
 			$crp_settings['post_thumb_op'] = 'text_only';
+		} else {
+			$crp_settings['include_default_style'] = false;
 		}
 
 		/**** Exclude categories ****/
-		$crp_settings['exclude_cat_slugs'] = wp_kses_post( $_POST['exclude_cat_slugs'] );
-		$exclude_categories_slugs = explode( ", ", $crp_settings['exclude_cat_slugs'] );
+		$exclude_categories_slugs = array_map( 'trim', explode( ",", wp_kses_post( $_POST['exclude_cat_slugs'] ) ) );
+		$crp_settings['exclude_cat_slugs'] = implode( ", ", $exclude_categories_slugs );
 
 		foreach ( $exclude_categories_slugs as $exclude_categories_slug ) {
 			$catObj = get_category_by_slug( $exclude_categories_slug );
-			if ( isset( $catObj->term_id ) ) $exclude_categories[] = $catObj->term_id;
+			if ( isset( $catObj->term_taxonomy_id ) ) $exclude_categories[] = $catObj->term_taxonomy_id;
 		}
 		$crp_settings['exclude_categories'] = ( isset( $exclude_categories ) ) ? join( ',', $exclude_categories ) : '';
 
@@ -216,17 +230,8 @@ function crp_options() {
 
 	if ( ( isset( $_POST['crp_recreate'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
 
-		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related'" ) ) {
-			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related" );
-		}
-		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related_title'" ) ) {
-			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_title" );
-		}
-		if ( $wpdb->get_results( "SHOW INDEX FROM {$wpdb->posts} where Key_name = 'crp_related_content'" ) ) {
-			$wpdb->query( "ALTER TABLE " . $wpdb->posts . " DROP INDEX crp_related_content" );
-		}
-
-		crp_single_activate();
+		crp_delete_index();
+		crp_create_index();
 
 		$str = '<div id="message" class="updated fade"><p>'. __( 'Index recreated', CRP_LOCAL_NAME ) .'</p></div>';
 		echo $str;
@@ -245,7 +250,7 @@ function crp_options() {
  */
 function crp_adminmenu() {
 	$plugin_page = add_options_page(
-		__( "Contextual Related Posts", CRP_LOCAL_NAME ),
+		"Contextual Related Posts",
 		__( "Related Posts", CRP_LOCAL_NAME ),
 		'manage_options',
 		'crp_options',

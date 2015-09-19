@@ -17,7 +17,7 @@ if ( ! defined( 'WPINC' ) ) {
 ?>
 
 <div class="wrap">
-	<h1><?php _e( 'Contextual Related Posts', CRP_LOCAL_NAME ); ?></h1>
+	<h1>Contextual Related Posts</h1>
 
 	<ul class="subsubsub">
 		<?php
@@ -211,6 +211,7 @@ if ( ! defined( 'WPINC' ) ) {
 							<textarea class="wickEnabled:MYCUSTOMFLOATER" cols="50" rows="3" wrap="virtual" name="exclude_cat_slugs"><?php echo ( stripslashes( $crp_settings['exclude_cat_slugs'] ) ); ?></textarea>
 						</div>
 						<p class="description"><?php _e( 'Comma separated list of category slugs. The field above has an autocomplete so simply start typing in the beginning of your category name and it will prompt you with options.', CRP_LOCAL_NAME ); ?></p>
+						<p class="description highlight"><?php _e( "Excluded category IDs are:", CRP_LOCAL_NAME ); echo " " . $crp_settings['exclude_categories']; ?></p>
 					</td>
 				</tr>
 
@@ -617,7 +618,7 @@ if ( ! defined( 'WPINC' ) ) {
 					<br />
 
 					<label>
-						<input type="radio" name="crp_styles" value="rounded_thumbs" id="crp_styles_0" <?php if ( $crp_settings['include_default_style'] || ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) ) echo 'checked="checked"' ?> /> <?php _e( 'Rounded Thumbnails', CRP_LOCAL_NAME ); ?>
+						<input type="radio" name="crp_styles" value="rounded_thumbs" id="crp_styles_0" <?php if ( $crp_settings['include_default_style'] && ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) ) echo 'checked="checked"' ?> /> <?php _e( 'Rounded Thumbnails', CRP_LOCAL_NAME ); ?>
 					</label>
 					<p class="description"><img src="<?php echo plugins_url( 'admin/images/crp-rounded-thumbs.png', dirname( __FILE__ ) ); ?>" /></p>
 					<p class="description"><?php _e( 'Enabling this option will turn on the thumbnails and set their width and height to 150px. It will also turn off the display of the author, excerpt and date if already enabled. Disabling this option will not revert any settings.', CRP_LOCAL_NAME ); ?></p>

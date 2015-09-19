@@ -15,7 +15,7 @@
  * Plugin Name:	Contextual Related Posts
  * Plugin URI:	https://webberzone.com/plugins/contextual-related-posts/
  * Description:	Display a set of related posts on your website or in your feed. Increase reader retention and reduce bounce rates
- * Version: 	2.2.0
+ * Version: 	2.2.2
  * Author: 		WebberZone
  * Author URI: 	https://webberzone.com
  * Text Domain:	crp
@@ -89,6 +89,12 @@ add_action( 'plugins_loaded', 'crp_lang_init' );
 function get_crp( $args = array() ) {
 	global $wpdb, $post, $crp_settings;
 
+	// if set, save $exclude_categories
+	if ( isset( $args['exclude_categories'] ) && '' != $args['exclude_categories'] ) {
+		$exclude_categories = explode( ",", $args['exclude_categories'] );
+		$args['strict_limit'] = FALSE;
+	}
+
 	$defaults = array(
 		'is_widget' => FALSE,
 		'is_manual' => FALSE,
@@ -118,12 +124,10 @@ function get_crp( $args = array() ) {
 		}
 	}
 
-	$exclude_categories = explode( ',', $args['exclude_categories'] );
-
 	// Retrieve the list of posts
 	$results = get_crp_posts_id( array_merge( $args, array(
 		'postid' => $post->ID,
-		'strict_limit' => TRUE,
+		'strict_limit' => ( isset( $args['strict_limit'] ) ) ? $args['strict_limit'] : TRUE,
 	) ) );
 
 	$output = ( is_singular() ) ? '<div id="crp_related" class="crp_related' . ( $args['is_widget'] ? '_widget' : '' ) . '">' : '<div class="crp_related' . ( $args['is_widget'] ? '_widget' : '' ) . '">';
@@ -135,7 +139,19 @@ function get_crp( $args = array() ) {
 
 		$output .= crp_before_list( $args );
 
+		// We need this for WPML support
+		$processed_results = array();
+
 		foreach ( $results as $result ) {
+
+			/* Support WPML */
+		    $resultid = crp_object_id_cur_lang( $result->ID );
+
+			if ( in_array( $resultid, $processed_results ) ) {
+			    continue;
+			}
+
+			array_push( $processed_results, $resultid );
 
 			/**
 			 * Filter the post ID for each result. Allows a custom function to hook in and change the ID if needed.
@@ -147,6 +163,19 @@ function get_crp( $args = array() ) {
 			$resultid = apply_filters( 'crp_post_id', $result->ID );
 
 			$result = get_post( $resultid );	// Let's get the Post using the ID
+
+			// Process the category exclusion if passed in the shortcode
+			if ( isset( $exclude_categories ) ) {
+
+				$categorys = get_the_category( $result->ID );	//Fetch categories of the plugin
+
+				$p_in_c = false;	// Variable to check if post exists in a particular category
+				foreach ( $categorys as $cat ) {	// Loop to check if post exists in excluded category
+					$p_in_c = ( in_array( $cat->cat_ID, $exclude_categories ) ) ? true : false;
+					if ( $p_in_c ) break;	// Skip loop execution and go to the next step
+				}
+				if ( $p_in_c ) continue;	// Skip loop execution and go to the next step
+			}
 
 			$output .= crp_before_list_item( $args, $result );
 
@@ -161,7 +190,7 @@ function get_crp( $args = array() ) {
 			}
 
 			if ( $args['show_excerpt'] ) {
-				$output .= '<span class="crp_excerpt"> ' . crp_excerpt( $result->ID, $excerpt_length ) . '</span>';
+				$output .= '<span class="crp_excerpt"> ' . crp_excerpt( $result->ID, $args['excerpt_length'] ) . '</span>';
 			}
 
 			$loop_counter++;
@@ -274,7 +303,8 @@ function get_crp_posts_id( $args = array() ) {
 
 	$limit = ( $args['strict_limit'] ) ? $args['limit'] : ( $args['limit'] * 3 );
 
-	parse_str( $args['post_types'], $post_types );	// Save post types in $post_types variable
+	// Save post types in $post_types variable
+	parse_str( $args['post_types'], $post_types );
 
 	/**
 	 * Filter the post_type clause of the query.
@@ -335,7 +365,7 @@ function get_crp_posts_id( $args = array() ) {
 	$from_date = gmdate( 'Y-m-d H:i:s' , $from_date );
 
 	// Create the SQL query to fetch the related posts from the database
-	if ( ( is_int( $post->ID ) ) && ( '' != $stuff ) ) {
+	if ( is_int( $post->ID ) ) {
 
 		// Fields to return
 		$fields = " $wpdb->posts.ID ";
@@ -871,6 +901,32 @@ add_action( 'wpmu_new_blog', 'crp_activate_new_site' );
 
 
 
+/**
+ * Returns the object identifier for the current language (WPML).
+ *
+ * @since	2.1.0
+ *
+ * @param	$post_id	Post ID
+ */
+function crp_object_id_cur_lang( $post_id ) {
+
+	if ( function_exists( 'wpml_object_id' ) ) {
+		$post_id = wpml_object_id( $post_id, 'post', TRUE );
+	} elseif ( function_exists( 'icl_object_id' ) ) {
+		$post_id = icl_object_id( $post_id, 'post', TRUE );
+	}
+
+	/**
+	 * Filters object ID for current language (WPML).
+	 *
+	 * @since	2.1.0
+	 *
+	 * @param	int	$post_id	Post ID
+	 */
+	return apply_filters( 'crp_object_id_cur_lang', $post_id );
+}
+
+
 /*----------------------------------------------------------------------------*
  * WordPress widget
  *----------------------------------------------------------------------------*/
@@ -894,7 +950,7 @@ add_action( 'widgets_init', 'register_crp_widget' );
  *----------------------------------------------------------------------------*/
 
 require_once( plugin_dir_path( __FILE__ ) . 'includes/output-generator.php' );
-require_once( plugin_dir_path( __FILE__ ) . 'includes/media-handler.php' );
+require_once( plugin_dir_path( __FILE__ ) . 'includes/media.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'includes/tools.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'includes/modules/manual-posts.php' );
 require_once( plugin_dir_path( __FILE__ ) . 'includes/modules/shortcode.php' );
