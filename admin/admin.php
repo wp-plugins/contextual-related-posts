@@ -21,7 +21,6 @@ if ( ! defined( 'WPINC' ) ) {
  * Function generates the plugin settings page.
  *
  * @since	1.0.1
- *
  */
 function crp_options() {
 
@@ -48,7 +47,6 @@ function crp_options() {
 		$crp_settings['crp_styles'] = 'rounded_thumbs';
 		update_option( 'ald_crp_settings', $crp_settings );
 	}
-
 
 	if ( ( isset( $_POST['crp_save'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
 
@@ -91,8 +89,8 @@ function crp_options() {
 		$crp_settings['before_list_item'] = wp_kses_post( $_POST['before_list_item'] );
 		$crp_settings['after_list_item'] = wp_kses_post( $_POST['after_list_item'] );
 
-		$crp_settings['exclude_on_post_ids'] = $_POST['exclude_on_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ",", $_POST['exclude_on_post_ids'] ) ) );
-		$crp_settings['exclude_post_ids'] = $_POST['exclude_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ",", $_POST['exclude_post_ids'] ) ) );
+		$crp_settings['exclude_on_post_ids'] = $_POST['exclude_on_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ',', $_POST['exclude_on_post_ids'] ) ) );
+		$crp_settings['exclude_post_ids'] = $_POST['exclude_post_ids'] == '' ? '' : implode( ',', array_map( 'intval', explode( ',', $_POST['exclude_post_ids'] ) ) );
 
 		/**** Thumbnail options ****/
 		$crp_settings['post_thumb_op'] = wp_kses_post( $_POST['post_thumb_op'] );
@@ -111,12 +109,11 @@ function crp_options() {
 			$crp_settings['thumb_crop'] = ( isset( $_POST['thumb_crop'] ) ? true : false );
 		}
 
-
 		$crp_settings['thumb_html'] = $_POST['thumb_html'];
 
 		$crp_settings['thumb_meta'] = ( '' == $_POST['thumb_meta'] ? 'post-image' : wp_kses_post( $_POST['thumb_meta'] ) );
 		$crp_settings['scan_images'] = ( isset( $_POST['scan_images'] ) ? true : false );
-		$crp_settings['thumb_default'] = ( ( '' == $_POST['thumb_default'] ) || ( "/default.png" == $_POST['thumb_default'] ) ) ? $crp_url . '/default.png' : $_POST['thumb_default'];
+		$crp_settings['thumb_default'] = ( ( '' == $_POST['thumb_default'] ) || ( '/default.png' == $_POST['thumb_default'] ) ) ? $crp_url . '/default.png' : $_POST['thumb_default'];
 		$crp_settings['thumb_default_show'] = ( isset( $_POST['thumb_default_show'] ) ? true : false );
 
 		/**** Feed options ****/
@@ -145,12 +142,12 @@ function crp_options() {
 		}
 
 		/**** Exclude categories ****/
-		$exclude_categories_slugs = array_map( 'trim', explode( ",", wp_kses_post( $_POST['exclude_cat_slugs'] ) ) );
-		$crp_settings['exclude_cat_slugs'] = implode( ", ", $exclude_categories_slugs );
+		$exclude_categories_slugs = array_map( 'trim', explode( ',', wp_kses_post( $_POST['exclude_cat_slugs'] ) ) );
+		$crp_settings['exclude_cat_slugs'] = implode( ', ', $exclude_categories_slugs );
 
 		foreach ( $exclude_categories_slugs as $exclude_categories_slug ) {
 			$catObj = get_category_by_slug( $exclude_categories_slug );
-			if ( isset( $catObj->term_taxonomy_id ) ) $exclude_categories[] = $catObj->term_taxonomy_id;
+			if ( isset( $catObj->term_taxonomy_id ) ) { $exclude_categories[] = $catObj->term_taxonomy_id; }
 		}
 		$crp_settings['exclude_categories'] = ( isset( $exclude_categories ) ) ? join( ',', $exclude_categories ) : '';
 
@@ -191,16 +188,16 @@ function crp_options() {
 		crp_cache_delete();
 
 		/* Echo a success message */
-		$str = '<div id="message" class="notice is-dismissible updated"><p>'. __( 'Options saved successfully. If enabled, the cache has been cleared.', CRP_LOCAL_NAME ) . '</p>';
+		$str = '<div id="message" class="notice is-dismissible updated"><p>'. __( 'Options saved successfully. If enabled, the cache has been cleared.', 'contextual-related-posts' ) . '</p>';
 
 		if ( 'rounded_thumbs' == $crp_settings['crp_styles'] ) {
-			$str .= '<p>'. __( 'Rounded Thumbnails style selected. Author, Excerpt and Date will not be displayed.', CRP_LOCAL_NAME ) . '</p>';
+			$str .= '<p>'. __( 'Rounded Thumbnails style selected. Author, Excerpt and Date will not be displayed.', 'contextual-related-posts' ) . '</p>';
 		}
 		if ( 'text_only' == $crp_settings['crp_styles'] ) {
-			$str .= '<p>'. __( 'Text Only style selected. Thumbnails will not be displayed.', CRP_LOCAL_NAME ) . '</p>';
+			$str .= '<p>'. __( 'Text Only style selected. Thumbnails will not be displayed.', 'contextual-related-posts' ) . '</p>';
 		}
 		if ( 'crp_thumbnail' != $crp_settings['thumb_size'] ) {
-			$str .= '<p>'. sprintf( __( 'Pre-built thumbnail size selected. Thumbnail set to %d x %d.', CRP_LOCAL_NAME ), $crp_settings['thumb_width'], $crp_settings['thumb_height'] ) . '</p>';
+			$str .= '<p>'. sprintf( __( 'Pre-built thumbnail size selected. Thumbnail set to %d x %d.', 'contextual-related-posts' ), $crp_settings['thumb_width'], $crp_settings['thumb_height'] ) . '</p>';
 		}
 
 		$str .= '</div>';
@@ -208,7 +205,7 @@ function crp_options() {
 		echo $str;
 	}
 
-	if ( ( isset($_POST['crp_default'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
+	if ( ( isset( $_POST['crp_default'] ) ) && ( check_admin_referer( 'crp-plugin-settings' ) ) ) {
 		delete_option( 'ald_crp_settings' );
 		$crp_settings = crp_default_options();
 		update_option( 'ald_crp_settings', $crp_settings );
@@ -224,7 +221,7 @@ function crp_options() {
 		parse_str( $crp_settings['exclude_on_post_types'], $exclude_on_post_types );
 		$posts_types_excl = array_intersect( $wp_post_types, $exclude_on_post_types );
 
-		$str = '<div id="message" class="updated fade"><p>'. __( 'Options set to Default.', CRP_LOCAL_NAME ) .'</p></div>';
+		$str = '<div id="message" class="updated fade"><p>'. __( 'Options set to Default.', 'contextual-related-posts' ) .'</p></div>';
 		echo $str;
 	}
 
@@ -233,7 +230,7 @@ function crp_options() {
 		crp_delete_index();
 		crp_create_index();
 
-		$str = '<div id="message" class="updated fade"><p>'. __( 'Index recreated', CRP_LOCAL_NAME ) .'</p></div>';
+		$str = '<div id="message" class="updated fade"><p>'. __( 'Index recreated', 'contextual-related-posts' ) .'</p></div>';
 		echo $str;
 	}
 
@@ -246,12 +243,11 @@ function crp_options() {
  * Add a link under Settings to the plugins settings page.
  *
  * @version 1.0.1
- *
  */
 function crp_adminmenu() {
 	$plugin_page = add_options_page(
-		"Contextual Related Posts",
-		__( "Related Posts", CRP_LOCAL_NAME ),
+		'Contextual Related Posts',
+		__( 'Related Posts', 'contextual-related-posts' ),
 		'manage_options',
 		'crp_options',
 		'crp_options'
@@ -265,7 +261,6 @@ add_action( 'admin_menu', 'crp_adminmenu' );
  * Function to add CSS and JS to the Admin header.
  *
  * @since 1.2
- *
  */
 function crp_adminhead() {
 	global $crp_url;
